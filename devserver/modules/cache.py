@@ -17,6 +17,7 @@ class CacheSummaryModule(DevServerModule):
     def process_init(self):
         from devserver.utils.stats import track
 
+        # save our current attributes
         self.old = dict((k, getattr(cache, k)) for k in self.attrs_to_track)
 
         for k in self.attrs_to_track:
@@ -25,9 +26,8 @@ class CacheSummaryModule(DevServerModule):
     def process_complete(self):
         from devserver.utils.stats import stats
 
-        self.logger.info('total time %(time)s - %(calls)s calls; %(hits)s hits; %(misses)s misses' % dict(
+        self.logger.info('%(calls)s calls; %(hits)s hits; %(misses)s misses' % dict(
             calls = stats.get_total_calls('cache'),
-            time = stats.get_total_time('cache'),
             hits = stats.get_total_hits('cache'),
             misses = stats.get_total_misses_for_function('cache', cache.get) + stats.get_total_misses_for_function('cache', cache.get_many),
             gets = stats.get_total_calls_for_function('cache', cache.get),
@@ -35,8 +35,9 @@ class CacheSummaryModule(DevServerModule):
             get_many = stats.get_total_calls_for_function('cache', cache.get_many),
             deletes = stats.get_total_calls_for_function('cache', cache.delete),
             #cache_calls_list = [(c['time'], c['func'].__name__, c['args'], c['kwargs'], simplejson.dumps(c['stack'])) for c in stats.get_calls('cache')],
-        ))
+        ), duration=stats.get_total_time('cache'))
 
+        # set our attributes back to their defaults
         for k, v in self.old.iteritems():
             setattr(cache, k, v)
         

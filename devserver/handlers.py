@@ -14,13 +14,15 @@ class GenericLogger(object):
     
     def log(self, message, *args, **kwargs):
         id = kwargs.pop('id', None)
+        duration = kwargs.pop('duration', None)
         level = kwargs.pop('level', logging.INFO)
-        if id:
-            tpl = '[%(asctime)s] [%(module)s/%(id)s] %(message)s'
+        if duration:
+            tpl = self.style.SQL_KEYWORD('(%.2fms)' % duration) + ' %(message)s'
         else:
-            tpl = '[%(asctime)s] [%(module)s] %(message)s'
+            tpl = '%(message)s'
 
         if args:
+            print message, args
             message = message % args
 
         if level == logging.ERROR:
@@ -30,16 +32,16 @@ class GenericLogger(object):
         else:
             message = self.style.HTTP_INFO(message)
 
-        message = self.style.SQL_FIELD('[%s] ' % self.module.logger_name) + message
+        tpl = self.style.SQL_FIELD('[%s] ' % self.module.logger_name) + tpl
 
+        message = tpl % dict(
+            id=id,
+            module=self.module.logger_name,
+            message=message,
+            asctime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        )
+        
         sys.stdout.write(message + '\n')
-
-        # print tpl % dict(
-        #     id=id,
-        #     module=self.module.logger_name,
-        #     message=message,
-        #     asctime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        # )
 
     warn = lambda x, *a, **k: x.log(level=logging.WARN, *a, **k)
     info = lambda x, *a, **k: x.log(level=logging.INFO, *a, **k)
