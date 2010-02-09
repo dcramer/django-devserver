@@ -12,6 +12,8 @@ To install the latest stable version::
 
 	pip install git+git://github.com/dcramer/django-devserver#egg=django-devserver
 
+django-devserver has an optional dependancy, sqlparse, which we highly recommend installing.
+
 
 You will need to include ``devserver`` in your ``INSTALLED_APPS``::
 

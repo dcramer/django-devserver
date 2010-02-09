@@ -21,6 +21,14 @@ from devserver.modules import DevServerModule
 #from devserver.utils.stack import tidy_stacktrace, get_template_info
 from devserver import settings
 
+try:
+    import sqlparse
+except ImportError:
+    class sqlparse:
+        @staticmethod
+        def format(text, *args, **kwargs):
+            return text
+
 # # TODO:This should be set in the toolbar loader as a default and panels should
 # # get a copy of the toolbar object with access to its config dictionary
 # SQL_WARNING_THRESHOLD = getattr(settings, 'DEVSERVER_CONFIG', {}) \
@@ -55,7 +63,17 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
             #     pass
             # del cur_frame
             
-            self.logger.debug(sql, duration=duration, id=hash, *params)
+            message = sqlparse.format(sql % params, reindent=True, keyword_case='upper')
+            first = False
+            new_message = []
+            for line in message.split('\n'):
+                if first:
+                    new_message.append('\t\t%s' % line)
+                else:
+                    new_message.append(line)
+                first = True
+            
+            self.logger.debug('\n'.join(new_message), duration=duration, id=hash)
             
             # 
             # # We keep `sql` to maintain backwards compatibility

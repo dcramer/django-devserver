@@ -17,7 +17,7 @@ class GenericLogger(object):
         duration = kwargs.pop('duration', None)
         level = kwargs.pop('level', logging.INFO)
         if duration:
-            tpl = self.style.SQL_KEYWORD('(%.2fms)' % duration) + ' %(message)s'
+            tpl = self.style.SQL_KEYWORD('(%.2fms) ' % duration) + ' %(message)s'
         else:
             tpl = '%(message)s'
 
@@ -32,7 +32,7 @@ class GenericLogger(object):
         else:
             message = self.style.HTTP_INFO(message)
 
-        tpl = self.style.SQL_FIELD('[%s] ' % self.module.logger_name) + tpl
+        tpl = self.style.SQL_FIELD('[%s] ' % self.module.logger_name) + tpl + '\t'
 
         message = tpl % dict(
             id=id,
