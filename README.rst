@@ -31,3 +31,22 @@ Usage
 Once installed, using the new runserver replacement is easy::
 
 	python manage.py rundevserver
+
+Building Modules
+----------------
+
+Building modules in devserver is quite simple. In fact, it resembles the middleware API almost identically.
+
+Let's take a sample module, which simple tells us when a request has started, and when it has finished::
+
+	from devserver.modules import DevServerModule
+	
+	class UselessModule(DevServerModule):
+	    logger_name = 'useless'
+	    
+	    def process_request(self, request):
+	        self.logger.info('Request started')
+	    
+	    def process_response(self, request, response):
+	        self.logger.info('Request ended')
+
