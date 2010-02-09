@@ -24,3 +24,10 @@ You may also specify additional modules to load via the ``DEVSERVER_MODULES`` se
 	DEVSERVER_MODULES = (
 	    'devserver.modules.sql.SQLModule',
 	)
+
+Usage
+-----
+
+Once installed, using the new runserver replacement is easy::
+
+	python manage.py rundevserver
