@@ -2,7 +2,8 @@ A drop in replacement for Django's built-in runserver command. Features an exten
 
 Included modules:
 
-* SQL: Outputs queries as they happen to the terminal, including time taken.
+* SQLRealTime: Outputs queries as they happen to the terminal, including time taken.
+* CacheSummary: Outputs a summary of your cache calls at the end of the request.
 
 Installation
 ------------
