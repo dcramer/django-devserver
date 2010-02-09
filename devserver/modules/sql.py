@@ -18,7 +18,7 @@ from django.utils.hashcompat import sha_constructor
 from django.utils.translation import ugettext_lazy as _
 
 from devserver.modules import DevServerModule
-from devserver.utils import tidy_stacktrace, get_template_info
+#from devserver.utils.stack import tidy_stacktrace, get_template_info
 from devserver import settings
 
 # # TODO:This should be set in the toolbar loader as a default and panels should
@@ -40,21 +40,21 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
         finally:
             stop = datetime.now()
             duration = ms_from_timedelta(stop - start)
-            stacktrace = tidy_stacktrace(traceback.extract_stack())
-            template_info = None
-            # TODO: can probably move this into utils
-            cur_frame = sys._getframe().f_back
-            try:
-                while cur_frame is not None:
-                    if cur_frame.f_code.co_name == 'render':
-                        node = cur_frame.f_locals['self']
-                        if isinstance(node, Node):
-                            template_info = get_template_info(node.source)
-                            break
-                    cur_frame = cur_frame.f_back
-            except:
-                pass
-            del cur_frame
+            # stacktrace = tidy_stacktrace(traceback.extract_stack())
+            # template_info = None
+            # # TODO: can probably move this into utils
+            # cur_frame = sys._getframe().f_back
+            # try:
+            #     while cur_frame is not None:
+            #         if cur_frame.f_code.co_name == 'render':
+            #             node = cur_frame.f_locals['self']
+            #             if isinstance(node, Node):
+            #                 template_info = get_template_info(node.source)
+            #                 break
+            #         cur_frame = cur_frame.f_back
+            # except:
+            #     pass
+            # del cur_frame
             
             self.logger.debug('Query took %s', duration, id=hash)
             
@@ -86,7 +86,11 @@ def reformat_sql(sql):
     stack.postprocess.append(sqlparse.filters.SerializerUnicode()) # tokens -> strings
     return ''.join(stack.run(sql))
 
-class SQLModule(DevServerModule):
+class SQLRealTimeModule(DevServerModule):
+    """
+    Outputs SQL queries as they happen.
+    """
+    
     old_cursor = util.CursorDebugWrapper
     logger_name = 'sql'
     
@@ -97,4 +101,3 @@ class SQLModule(DevServerModule):
     
     def process_response(self, request, response):
         util.CursorDebugWrapper = self.old_cursor
-            

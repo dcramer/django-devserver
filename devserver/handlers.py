@@ -4,6 +4,8 @@ import datetime
 import sys
 import logging
 
+from devserver.utils.stats import reset_tracking
+
 class GenericLogger(object):
     def __init__(self, module):
         self.module = module
@@ -73,18 +75,21 @@ class DevServerMiddleware(object):
         self.loggers = loggers
 
     def process_request(self, request):
+        reset_tracking()
+        
         for mod in MODULES:
             mod(self.loggers[mod]).process_request(request)
     
     def process_response(self, request, response):
-        for mod in MODULES:
-            mod(self.loggers[mod]).process_response(request, response)
-        return response
+        try:
+            return response
+        finally:
+            for mod in MODULES:
+                mod(self.loggers[mod]).process_response(request, response)
         
     def process_exception(self, request, exception):
         for mod in MODULES:
             mod(self.loggers[mod]).process_exception(request, exception)
-        raise
         
     def process_view(self, request, view_func, view_args, view_kwargs):
         for mod in MODULES:

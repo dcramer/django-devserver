@@ -22,7 +22,8 @@ You will need to include ``devserver`` in your ``INSTALLED_APPS``::
 You may also specify additional modules to load via the ``DEVSERVER_MODULES`` setting::
 
 	DEVSERVER_MODULES = (
-	    'devserver.modules.sql.SQLModule',
+	    'devserver.modules.sql.SQLRealTimeModule',
+	    'devserver.modules.cache.CacheSummaryModule',
 	)
 
 Usage
