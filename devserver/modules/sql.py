@@ -32,7 +32,7 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
     """
     def execute(self, sql, params=()):
         hash = sha_constructor(sql + str(params)).hexdigest()
-        self.logger.debug(sql, id=hash)
+        self.logger.debug(sql, id=hash, *params)
         
         start = datetime.now()
         try:
