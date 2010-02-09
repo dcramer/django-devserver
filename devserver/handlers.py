@@ -22,7 +22,7 @@ class GenericLogger(object):
             id=id,
             module=self.module.logger_name,
             message=message,
-            asctime=datetime.datetime.now(),
+            asctime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         )
 
     warn = lambda x, *a, **k: x.log(*a, **k)
