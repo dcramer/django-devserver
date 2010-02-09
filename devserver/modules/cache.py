@@ -14,7 +14,7 @@ class CacheSummaryModule(DevServerModule):
 
     attrs_to_track = ['set', 'get', 'delete', 'add', 'get_many']
     
-    def process_init(self):
+    def process_init(self, request):
         from devserver.utils.stats import track
 
         # save our current attributes
@@ -23,18 +23,23 @@ class CacheSummaryModule(DevServerModule):
         for k in self.attrs_to_track:
             setattr(cache, k, track(getattr(cache, k), 'cache'))
 
-    def process_complete(self):
+    def process_complete(self, request):
         from devserver.utils.stats import stats
 
-        self.logger.info('%(calls)s calls; %(hits)s hits; %(misses)s misses' % dict(
-            calls = stats.get_total_calls('cache'),
-            hits = stats.get_total_hits('cache'),
-            misses = stats.get_total_misses_for_function('cache', cache.get) + stats.get_total_misses_for_function('cache', cache.get_many),
-            gets = stats.get_total_calls_for_function('cache', cache.get),
-            sets = stats.get_total_calls_for_function('cache', cache.set),
-            get_many = stats.get_total_calls_for_function('cache', cache.get_many),
-            deletes = stats.get_total_calls_for_function('cache', cache.delete),
-            #cache_calls_list = [(c['time'], c['func'].__name__, c['args'], c['kwargs'], simplejson.dumps(c['stack'])) for c in stats.get_calls('cache')],
+        calls = stats.get_total_calls('cache')
+        hits = stats.get_total_hits('cache')
+        misses = stats.get_total_misses_for_function('cache', cache.get) + stats.get_total_misses_for_function('cache', cache.get_many)
+
+        if calls:
+            ratio = int(hits / float(calls) * 100)
+        else:
+            ratio = 100
+        
+        self.logger.info('%(calls)s calls made with a %(ratio)d%% hit percentage (%(misses)s misses)' % dict(
+            calls = calls,
+            ratio = ratio,
+            hits = hits,
+            misses = misses,
         ), duration=stats.get_total_time('cache'))
 
         # set our attributes back to their defaults

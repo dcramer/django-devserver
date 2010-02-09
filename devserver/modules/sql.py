@@ -9,13 +9,7 @@ import traceback
 import django
 from django.db import connection
 from django.db.backends import util
-from django.views.debug import linebreak_iter
-from django.template import Node
-from django.template.loader import render_to_string
-from django.utils import simplejson
-from django.utils.encoding import force_unicode
-from django.utils.hashcompat import sha_constructor
-from django.utils.translation import ugettext_lazy as _
+#from django.template import Node
 
 from devserver.modules import DevServerModule
 #from devserver.utils.stack import tidy_stacktrace, get_template_info
@@ -39,8 +33,6 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
     Replacement for CursorDebugWrapper which outputs information as it happens.
     """
     def execute(self, sql, params=()):
-        hash = sha_constructor(sql + str(params)).hexdigest()
-        
         start = datetime.now()
         try:
             return self.cursor.execute(sql, params)
@@ -63,32 +55,50 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
             #     pass
             # del cur_frame
             
-            message = sqlparse.format(sql % params, reindent=True, keyword_case='upper')
+            try:
+                sql = self.db.ops.last_executed_query(self.cursor, sql, params)
+            except:
+                sql = sql % params
+            
+            message = sqlparse.format(sql, reindent=True, keyword_case='upper')
             first = False
+            # TODO: find a better way to handle indentation?
             new_message = []
             for line in message.split('\n'):
                 if first:
-                    new_message.append('\t\t%s' % line)
+                    new_message.append('\t\t\t%s' % line)
                 else:
                     new_message.append(line)
                 first = True
             
-            self.logger.debug('\n'.join(new_message), duration=duration, id=hash)
+            self.logger.debug('\n'.join(new_message), duration=duration, id='query')
+            self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration, id='query')
             
-            # 
-            # # We keep `sql` to maintain backwards compatibility
-            # self.db.queries.append({
-            #     'sql': self.db.ops.last_executed_query(self.cursor, sql, params),
-            #     'duration': duration,
-            #     'raw_sql': sql,
-            #     'params': _params,
-            #     'stacktrace': stacktrace,
-            #     'start_time': start,
-            #     'stop_time': stop,
-            #     'is_slow': (duration > SQL_WARNING_THRESHOLD),
-            #     'is_select': sql.lower().strip().startswith('select'),
-            #     'template_info': template_info,
-            # })
+            self.db.queries.append({
+                'sql': sql,
+                'time': "%.3f" % duration,
+            })
+            
+    def executemany(self, sql, param_list):
+        start = datetime.now()
+        try:
+            return self.cursor.executemany(sql, param_list)
+        finally:
+            stop = datetime.now()
+            duration = ms_from_timedelta(stop - start)
+            
+            message = sqlparse.format(sql, reindent=True, keyword_case='upper')
+            first = False
+            # TODO: find a better way to handle indentation?
+            new_message = ['Executed %s times'] + ['\t\t\t%s' % line for line in message.split('\n')]
+            
+            self.logger.debug('\n'.join(new_message), duration=duration, id='query')
+            self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration, id='query')
+            
+            self.db.queries.append({
+                'sql': '%s times: %s' % (len(param_list), sql),
+                'time': "%.3f" % duration,
+            })
 
 def ms_from_timedelta(td):
     """
@@ -110,10 +120,10 @@ class SQLRealTimeModule(DevServerModule):
     
     logger_name = 'sql'
     
-    def process_init(self):
+    def process_init(self, request):
         self.old_cursor = util.CursorDebugWrapper
         util.CursorDebugWrapper = DatabaseStatTracker
         DatabaseStatTracker.logger = self.logger
     
-    def process_complete(self):
+    def process_complete(self, request):
         util.CursorDebugWrapper = self.old_cursor
