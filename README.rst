@@ -54,3 +54,7 @@ Let's take a sample module, which simple tells us when a request has started, an
 	    def process_complete(self):
 	        self.logger.info('Request ended')
 
+There are additional arguments which may be sent to logger methods, such as ``duration``::
+
+	# duration is in milliseconds
+	self.logger.info('message', duration=13.134)
