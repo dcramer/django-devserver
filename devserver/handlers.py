@@ -75,17 +75,13 @@ class DevServerMiddleware(object):
         self.loggers = loggers
 
     def process_request(self, request):
-        reset_tracking()
-        
         for mod in MODULES:
             mod(self.loggers[mod]).process_request(request)
     
     def process_response(self, request, response):
-        try:
-            return response
-        finally:
-            for mod in MODULES:
-                mod(self.loggers[mod]).process_response(request, response)
+        for mod in MODULES:
+            mod(self.loggers[mod]).process_response(request, response)
+        return response
         
     def process_exception(self, request, exception):
         for mod in MODULES:
@@ -96,6 +92,16 @@ class DevServerMiddleware(object):
             mod(self.loggers[mod]).process_view(request, view_func, view_args, view_kwargs)
         return view_func(request, *view_args, **view_kwargs)
 
+    def process_init(self):
+        reset_tracking()
+        
+        for mod in MODULES:
+            mod(self.loggers[mod]).process_init()
+
+    def process_complete(self):
+        for mod in MODULES:
+            mod(self.loggers[mod]).process_complete()
+
 class DevServerHandler(WSGIHandler):
     def load_middleware(self):
         super(DevServerHandler, self).load_middleware()
@@ -105,3 +111,12 @@ class DevServerHandler(WSGIHandler):
         self._view_middleware.append(DevServerMiddleware().process_view)
         self._response_middleware.append(DevServerMiddleware().process_response)
         self._exception_middleware.append(DevServerMiddleware().process_exception)
+
+    def __call__(self, *args, **kwargs):
+        DevServerMiddleware().process_init()
+
+        response = super(DevServerHandler, self).__call__(*args, **kwargs)
+        
+        DevServerMiddleware().process_complete()
+        
+        return response

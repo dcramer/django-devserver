@@ -16,13 +16,13 @@ class CacheSummaryModule(DevServerModule):
     attrs_to_track = ['set', 'get', 'delete', 'add', 'get_many']
     old = {}
     
-    def process_request(self, request):
+    def process_init(self):
         self.old = dict((k, getattr(cache, k)) for k in self.attrs_to_track)
 
         for k in self.attrs_to_track:
             setattr(cache, k, track(getattr(cache, k), 'cache'))
 
-    def process_response(self, request, response):
+    def process_complete(self):
         self.logger.info('total time %(time)s - %(calls)s calls; %(hits)s hits; %(misses)s misses' % dict(
             calls = get_stats().get_total_calls('cache'),
             time = get_stats().get_total_time('cache'),
