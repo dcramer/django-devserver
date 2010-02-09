@@ -1,15 +1,20 @@
 from django.core.handlers.wsgi import WSGIHandler
+from django.core.management.color import color_style
 
 import datetime
 import sys
 import logging
 
+
+
 class GenericLogger(object):
     def __init__(self, module):
         self.module = module
+        self.style = color_style()
     
     def log(self, message, *args, **kwargs):
         id = kwargs.pop('id', None)
+        level = kwargs.pop('level', logging.INFO)
         if id:
             tpl = '[%(asctime)s] [%(module)s/%(id)s] %(message)s'
         else:
@@ -18,19 +23,28 @@ class GenericLogger(object):
         if args:
             message = message % args
 
-        print tpl % dict(
-            id=id,
-            module=self.module.logger_name,
-            message=message,
-            asctime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        )
+        if level == logging.ERROR:
+            message = self.style.ERROR(message)
+        else:
+            message = self.style.HTTP_INFO(message)
 
-    warn = lambda x, *a, **k: x.log(*a, **k)
-    info = lambda x, *a, **k: x.log(*a, **k)
-    debug = lambda x, *a, **k: x.log(*a, **k)
-    error = lambda x, *a, **k: x.log(*a, **k)
-    critical = lambda x, *a, **k: x.log(*a, **k)
-    fatal = lambda x, *a, **k: x.log(*a, **k)
+        message = self.style.SQL_FIELD('[%s] ' % self.module.logger_name) + message
+
+        sys.stdout.write(message + '\n')
+
+        # print tpl % dict(
+        #     id=id,
+        #     module=self.module.logger_name,
+        #     message=message,
+        #     asctime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        # )
+
+    warn = lambda x, *a, **k: x.log(level=logging.WARN, *a, **k)
+    info = lambda x, *a, **k: x.log(level=logging.INFO, *a, **k)
+    debug = lambda x, *a, **k: x.log(level=logging.DEBUG, *a, **k)
+    error = lambda x, *a, **k: x.log(level=logging.ERROR, *a, **k)
+    critical = lambda x, *a, **k: x.log(level=logging.CRITICAL, *a, **k)
+    fatal = lambda x, *a, **k: x.log(level=logging.FATAL, *a, **k)
 
 MODULES = []
 def load_modules():
@@ -63,7 +77,6 @@ def load_modules():
             raise # Bubble up problem loading panel
 
         MODULES.append(instance)
-load_modules()
 
 class DevServerMiddleware(object):
     def process_request(self, request):

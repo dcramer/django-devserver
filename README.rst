@@ -46,9 +46,9 @@ Let's take a sample module, which simple tells us when a request has started, an
 	class UselessModule(DevServerModule):
 	    logger_name = 'useless'
 	    
-	    def process_request(self, request):
+	    def process_init(self):
 	        self.logger.info('Request started')
 	    
-	    def process_response(self, request, response):
+	    def process_complete(self):
 	        self.logger.info('Request ended')
 
