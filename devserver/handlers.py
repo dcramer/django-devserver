@@ -25,6 +25,8 @@ class GenericLogger(object):
 
         if level == logging.ERROR:
             message = self.style.ERROR(message)
+        elif level == logging.WARN:
+            message = self.style.NOTICE(message)
         else:
             message = self.style.HTTP_INFO(message)
 
