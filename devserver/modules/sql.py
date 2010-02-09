@@ -56,7 +56,7 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
             #     pass
             # del cur_frame
             
-            self.logger.debug('Query took %s', duration, id=hash)
+            self.logger.debug('Query took %ss', duration, id=hash)
             
             # 
             # # We keep `sql` to maintain backwards compatibility
@@ -91,7 +91,6 @@ class SQLRealTimeModule(DevServerModule):
     Outputs SQL queries as they happen.
     """
     
-    old_cursor = util.CursorDebugWrapper
     logger_name = 'sql'
     
     def process_init(self):

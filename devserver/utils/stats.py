@@ -3,17 +3,18 @@ try:
 except ImportError:
     from django.utils._threading_local import local
 
-import inspect
 import time
 
-__all__ = ('track', 'get_stats', 'enable_tracking', 'reset_tracking', 'freeze_tracking')
+__all__ = ('track', 'stats')
 
 class StatCollection(object):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(StatCollection, self).__init__(*args, **kwargs)
         self.reset()
     
     def run(self, func, key, *args, **kwargs):
         """Profile a function and store its information."""
+
         start_time = time.time()
         value = func(*args, **kwargs)
         end_time = time.time()
@@ -37,7 +38,7 @@ class StatCollection(object):
             'kwargs': kwargs,
             'time': this_time,
             'hit': value is not None,
-            'stack': [s[1:] for s in inspect.stack()[2:]],
+            #'stack': [s[1:] for s in inspect.stack()[2:]],
         })
         row = self.summary.setdefault(key, {'count': 0, 'time': 0.0, 'hits': 0})
         row['count'] += 1
@@ -80,26 +81,14 @@ class StatCollection(object):
     def get_calls(self, key):
         return self.calls.get(key, [])
 
-_stats = local()
-def get_stats():
-    return _stats.collection
-
-def enable_tracking(true_or_false):
-    _stats.track = true_or_false
-
-def reset_tracking():
-    _stats.collection = StatCollection()
-    _stats.track = False
-
-def freeze_tracking():
-    enable_tracking(False)
+stats = StatCollection()
 
 def track(func, key):
     """A decorator which handles tracking calls on a function."""
     def wrapped(*args, **kwargs):
-        if _stats.track:
-            return _stats.collection.run(func, key, *args, **kwargs)
-        return func(*args, **kwargs)
+        global stats
+        
+        return stats.run(func, key, *args, **kwargs)
     wrapped.__doc__ = func.__doc__
     wrapped.__name__ = func.__name__
     return wrapped

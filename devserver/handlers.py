@@ -4,8 +4,6 @@ import datetime
 import sys
 import logging
 
-from devserver.utils.stats import reset_tracking
-
 class GenericLogger(object):
     def __init__(self, module):
         self.module = module
@@ -38,6 +36,8 @@ MODULES = []
 def load_modules():
     global MODULES
     
+    MODULES = []
+    
     from django.core import exceptions
     from devserver import settings
     
@@ -58,49 +58,43 @@ def load_modules():
             raise exceptions.ImproperlyConfigured, 'Error importing devserver module "%s" does not define a "%s" class' % (name, class_name)
 
         try:
-            cls(None)
+            instance = cls(GenericLogger(cls))
         except:
             raise # Bubble up problem loading panel
 
-        MODULES.append(cls)
+        MODULES.append(instance)
 load_modules()
 
 class DevServerMiddleware(object):
-    def __init__(self):
-        loggers = {}
-
-        for mod in MODULES:
-            loggers[mod] = GenericLogger(mod)
-    
-        self.loggers = loggers
-
     def process_request(self, request):
         for mod in MODULES:
-            mod(self.loggers[mod]).process_request(request)
+            mod.process_request(request)
     
     def process_response(self, request, response):
         for mod in MODULES:
-            mod(self.loggers[mod]).process_response(request, response)
+            mod.process_response(request, response)
         return response
         
     def process_exception(self, request, exception):
         for mod in MODULES:
-            mod(self.loggers[mod]).process_exception(request, exception)
+            mod.process_exception(request, exception)
         
     def process_view(self, request, view_func, view_args, view_kwargs):
         for mod in MODULES:
-            mod(self.loggers[mod]).process_view(request, view_func, view_args, view_kwargs)
+            mod.process_view(request, view_func, view_args, view_kwargs)
         return view_func(request, *view_args, **view_kwargs)
 
     def process_init(self):
-        reset_tracking()
+        from devserver.utils.stats import stats
+        
+        stats.reset()
         
         for mod in MODULES:
-            mod(self.loggers[mod]).process_init()
+            mod.process_init()
 
     def process_complete(self):
         for mod in MODULES:
-            mod(self.loggers[mod]).process_complete()
+            mod.process_complete()
 
 class DevServerHandler(WSGIHandler):
     def load_middleware(self):
@@ -113,10 +107,13 @@ class DevServerHandler(WSGIHandler):
         self._exception_middleware.append(DevServerMiddleware().process_exception)
 
     def __call__(self, *args, **kwargs):
+        # XXX: kind of hackish -- we reload module instances at start so the middlework works as normal
+        load_modules()
+        
         DevServerMiddleware().process_init()
 
-        response = super(DevServerHandler, self).__call__(*args, **kwargs)
-        
-        DevServerMiddleware().process_complete()
-        
-        return response
+        try:
+            response = super(DevServerHandler, self).__call__(*args, **kwargs)
+            return response
+        finally:
+            DevServerMiddleware().process_complete()
