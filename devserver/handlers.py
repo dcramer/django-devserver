@@ -1,11 +1,10 @@
 from django.core.handlers.wsgi import WSGIHandler, set_script_prefix, signals, base, STATUS_CODE_TEXT
 from django.core.management.color import color_style
+from django.utils import termcolors
 
 import datetime
 import sys
 import logging
-
-
 
 class GenericLogger(object):
     def __init__(self, module):
@@ -34,7 +33,11 @@ class GenericLogger(object):
         elif level == logging.WARN:
             message = self.style.NOTICE(message)
         else:
-            message = self.style.HTTP_INFO(message)
+            try:
+                HTTP_INFO = self.style.HTTP_INFO
+            except:
+                HTTP_INFO = termcolors.make_style(fg='red')
+            message = HTTP_INFO(message)
 
         tpl = ' '.join(tpl_bits) + '\t'
 

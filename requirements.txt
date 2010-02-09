@@ -1,2 +1,2 @@
-Django
+Django>=1.1
 sqlparse
