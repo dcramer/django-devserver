@@ -1,6 +1,6 @@
 A drop in replacement for Django's built-in runserver command. Features an extendable interface for handling things such as real-time logging.
 
-.. image:: http://www.pastethat.com/media/files/2010/02/09/Screen_shot_2010-02-09_at_5.51.51_PM.png
+.. image:: http://www.pastethat.com/media/files/2010/02/10/Screen_shot_2010-02-10_at_12.53.18_AM.png
    :alt: devserver screenshot
 
 Included modules:
