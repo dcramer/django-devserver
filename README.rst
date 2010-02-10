@@ -6,7 +6,7 @@ A drop in replacement for Django's built-in runserver command. Features an exten
 Included modules:
 
 * SQLRealTime: Outputs queries as they happen to the terminal, including time taken.
-* SQLSummary: Outputs a summary of your SQL usage. Conflicts with SQLRealTime.
+* SQLSummary: Outputs a summary of your SQL usage.
 * ProfileSummary: Outputs a summary of the request performance.
 * CacheSummary: Outputs a summary of your cache calls at the end of the request.
 
@@ -31,14 +31,12 @@ You may also specify additional modules to load via the ``DEVSERVER_MODULES`` se
 
 	DEVSERVER_MODULES = (
 	    'devserver.modules.sql.SQLRealTimeModule',
+	    'devserver.modules.sql.SQLSummaryModule',
 	    'devserver.modules.profile.ProfileSummaryModule',
 
 	    # Modules not enabled by default
 	    'devserver.modules.cache.CacheSummaryModule',
-	    'devserver.modules.sql.SQLSummaryModule',
 	)
-
-*Note: the SQLSummaryModule conflicts with the SQLRealTimeModule currently.*
 
 Usage
 -----
@@ -46,6 +44,8 @@ Usage
 Once installed, using the new runserver replacement is easy::
 
 	python manage.py rundevserver
+
+Note: This will *force* ``settings.DEBUG`` to ``True``.
 
 Building Modules
 ----------------

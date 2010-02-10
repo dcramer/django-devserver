@@ -125,14 +125,8 @@ class SQLSummaryModule(DevServerModule):
     
     logger_name = 'sql'
     
-    def process_init(self, request):
-        self.old_cursor = util.CursorDebugWrapper
-        util.CursorDebugWrapper = DatabaseStatTracker
-        DatabaseStatTracker.logger = None
-    
     def process_complete(self, request):
-        util.CursorDebugWrapper = self.old_cursor
         self.logger.info('%(calls)s queries' % dict(
             calls = len(connection.queries),
-        ), duration=sum(c['time'] for c in connection.queries))
+        ), duration=sum(float(c['time']) for c in connection.queries))
         

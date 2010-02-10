@@ -46,6 +46,7 @@ class Command(BaseCommand):
             # Flag the server as active
             from devserver import settings
             settings.DEVSERVER_ACTIVE = True
+            settings.DEBUG = True
 
             from django.conf import settings
             from django.utils import translation
