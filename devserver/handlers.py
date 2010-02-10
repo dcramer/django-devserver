@@ -90,32 +90,38 @@ def load_modules():
         MODULES.append(instance)
 
 class DevServerMiddleware(object):
-    def is_media(self, request):
+    def should_process(self, request):
         from django.conf import settings
         
-        if not settings.MEDIA_URL:
+        if settings.MEDIA_URL and request.path.startswith(settings.MEDIA_URL):
             return False
         
-        return request.path.startswith(settings.MEDIA_URL)
+        if settings.ADMIN_MEDIA_PREFIX and request.path.startswith(settings.ADMIN_MEDIA_PREFIX):
+            return False
+        
+        if request.path == '/favicon.ico':
+            return False
+        
+        return True
     
     def process_request(self, request):
-        if not self.is_media(request):
+        if self.should_process(request):
             for mod in MODULES:
                 mod.process_request(request)
     
     def process_response(self, request, response):
-        if not self.is_media(request):
+        if self.should_process(request):
             for mod in MODULES:
                 mod.process_response(request, response)
         return response
         
     def process_exception(self, request, exception):
-        if not self.is_media(request):
+        if self.should_process(request):
             for mod in MODULES:
                 mod.process_exception(request, exception)
         
     def process_view(self, request, view_func, view_args, view_kwargs):
-        if not self.is_media(request):
+        if self.should_process(request):
             for mod in MODULES:
                 mod.process_view(request, view_func, view_args, view_kwargs)
         return view_func(request, *view_args, **view_kwargs)
@@ -125,12 +131,12 @@ class DevServerMiddleware(object):
         
         stats.reset()
         
-        if not self.is_media(request):
+        if self.should_process(request):
             for mod in MODULES:
                 mod.process_init(request)
 
     def process_complete(self, request):
-        if not self.is_media(request):
+        if self.should_process(request):
             for mod in MODULES:
                 mod.process_complete(request)
 
