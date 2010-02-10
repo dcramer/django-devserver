@@ -7,6 +7,9 @@ import django
 from django.core.servers.basehttp import run, AdminMediaHandler, WSGIServerException
 from devserver.handlers import DevServerHandler
 
+def null_technical_500_response(request, exc_type, exc_value, tb):
+    raise exc_type, exc_value, tb
+
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option('--noreload', action='store_false', dest='use_reloader', default=True,
