@@ -18,3 +18,9 @@ class DevServerModule(object):
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         pass
+    
+    def process_init(self, request):
+        pass
+    
+    def process_complete(self, request):
+        pass
