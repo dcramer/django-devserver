@@ -3,7 +3,9 @@ try:
 except ImportError:
     from django.utils._threading_local import local
 
-import time
+from datetime import datetime
+
+from devserver.utils.time import ms_from_timedelta
 
 __all__ = ('track', 'stats')
 
@@ -15,10 +17,10 @@ class StatCollection(object):
     def run(self, func, key, *args, **kwargs):
         """Profile a function and store its information."""
 
-        start_time = time.time()
+        start_time = datetime.now()
         value = func(*args, **kwargs)
-        end_time = time.time()
-        this_time = end_time - start_time
+        end_time = datetime.now()
+        this_time = ms_from_timedelta(end_time - start_time)
         values = {
             'args': args,
             'kwargs': kwargs,
