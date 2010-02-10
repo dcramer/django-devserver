@@ -48,7 +48,7 @@ class GenericLogger(object):
             asctime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         )
         
-        sys.stdout.write(message + '\n')
+        sys.stdout.write(message.encode('utf8') + '\n')
 
     warn = lambda x, *a, **k: x.log(level=logging.WARN, *a, **k)
     info = lambda x, *a, **k: x.log(level=logging.INFO, *a, **k)
