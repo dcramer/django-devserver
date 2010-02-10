@@ -93,6 +93,9 @@ class DevServerMiddleware(object):
     def is_media(self, request):
         from django.conf import settings
         
+        if not settings.MEDIA_URL:
+            return False
+        
         return request.path.startswith(settings.MEDIA_URL)
     
     def process_request(self, request):
