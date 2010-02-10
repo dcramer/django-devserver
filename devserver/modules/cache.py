@@ -1,6 +1,3 @@
-from django.template.loader import render_to_string
-from django.shortcuts import render_to_response
-from django.utils import simplejson
 from django.core.cache import cache
 
 from devserver.modules import DevServerModule
