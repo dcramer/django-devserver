@@ -13,6 +13,7 @@ from django.db.backends import util
 
 from devserver.modules import DevServerModule
 #from devserver.utils.stack import tidy_stacktrace, get_template_info
+from devserver.utils.time import ms_from_timedelta
 from devserver import settings
 
 try:
@@ -59,24 +60,25 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
                 sql = self.db.ops.last_executed_query(self.cursor, sql, params)
             except:
                 sql = sql % params
+
+            if self.logger:
+                message = sqlparse.format(sql, reindent=True, keyword_case='upper')
+                first = False
+                # TODO: find a better way to handle indentation?
+                new_message = []
+                for line in message.split('\n'):
+                    if first:
+                        new_message.append('\t\t\t%s' % line)
+                    else:
+                        new_message.append(line)
+                    first = True
             
-            message = sqlparse.format(sql, reindent=True, keyword_case='upper')
-            first = False
-            # TODO: find a better way to handle indentation?
-            new_message = []
-            for line in message.split('\n'):
-                if first:
-                    new_message.append('\t\t\t%s' % line)
-                else:
-                    new_message.append(line)
-                first = True
-            
-            self.logger.debug('\n'.join(new_message), duration=duration, id='query')
-            self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration, id='query')
+                self.logger.debug('\n'.join(new_message), duration=duration, id='query')
+                self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration, id='query')
             
             self.db.queries.append({
                 'sql': sql,
-                'time': "%.3f" % duration,
+                'time': duration,
             })
             
     def executemany(self, sql, param_list):
@@ -87,31 +89,19 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
             stop = datetime.now()
             duration = ms_from_timedelta(stop - start)
             
-            message = sqlparse.format(sql, reindent=True, keyword_case='upper')
-            first = False
-            # TODO: find a better way to handle indentation?
-            new_message = ['Executed %s times'] + ['\t\t\t%s' % line for line in message.split('\n')]
+            if self.logger:
+                message = sqlparse.format(sql, reindent=True, keyword_case='upper')
+
+                # TODO: find a better way to handle indentation?
+                new_message = ['Executed %s times'] + ['\t\t\t%s' % line for line in message.split('\n')]
             
-            self.logger.debug('\n'.join(new_message), duration=duration, id='query')
-            self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration, id='query')
+                self.logger.debug('\n'.join(new_message), duration=duration, id='query')
+                self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration, id='query')
             
             self.db.queries.append({
                 'sql': '%s times: %s' % (len(param_list), sql),
-                'time': "%.3f" % duration,
+                'time': duration,
             })
-
-def ms_from_timedelta(td):
-    """
-    Given a timedelta object, returns a float representing milliseconds
-    """
-    return (td.seconds * 1000) + (td.microseconds / 1000.0)
-
-
-def reformat_sql(sql):
-    stack = sqlparse.engine.FilterStack()
-    stack.preprocess.append(BoldKeywordFilter()) # add our custom filter
-    stack.postprocess.append(sqlparse.filters.SerializerUnicode()) # tokens -> strings
-    return ''.join(stack.run(sql))
 
 class SQLRealTimeModule(DevServerModule):
     """
@@ -127,3 +117,22 @@ class SQLRealTimeModule(DevServerModule):
     
     def process_complete(self, request):
         util.CursorDebugWrapper = self.old_cursor
+
+class SQLSummaryModule(DevServerModule):
+    """
+    Outputs a summary SQL queries.
+    """
+    
+    logger_name = 'sql'
+    
+    def process_init(self, request):
+        self.old_cursor = util.CursorDebugWrapper
+        util.CursorDebugWrapper = DatabaseStatTracker
+        DatabaseStatTracker.logger = None
+    
+    def process_complete(self, request):
+        util.CursorDebugWrapper = self.old_cursor
+        self.logger.info('%(calls)s queries' % dict(
+            calls = len(connection.queries),
+        ), duration=sum(c['time'] for c in connection.queries))
+        
