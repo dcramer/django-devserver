@@ -2,6 +2,7 @@ DEVSERVER_MODULES = (
     'devserver.modules.sql.SQLRealTimeModule',
     'devserver.modules.profile.ProfileSummaryModule',
     'devserver.modules.sql.SQLSummaryModule',
+    # 'devserver.modules.profile.LeftOversModule',
     # 'devserver.modules.cache.CacheSummaryModule',
 )
 
