@@ -37,6 +37,15 @@ class Command(BaseCommand):
         if not port.isdigit():
             raise CommandError("%r is not a valid port number." % port)
 
+        try:
+            from werkzeug import run_simple, DebuggedApplication
+        except ImportError, e:
+            werkzeug = False
+        else:
+            werkzeug = True
+            from django.views import debug
+            debug.technical_500_response = null_technical_500_response
+
         use_reloader = options.get('use_reloader', True)
         admin_media_path = options.get('admin_media_path', '')
         shutdown_message = options.get('shutdown_message', '')
@@ -64,7 +73,11 @@ class Command(BaseCommand):
 
             try:
                 handler = AdminMediaHandler(DevServerHandler(), admin_media_path)
-                run(addr, int(port), handler)
+                if werkzeug:
+                    run_simple(addr, int(port), DebuggedApplication(handler, True),
+                        use_reloader=use_reloader, use_debugger=True)
+                else:
+                    run(addr, int(port), handler)
             except WSGIServerException, e:
                 # Use helpful error messages instead of ugly tracebacks.
                 ERRORS = {
