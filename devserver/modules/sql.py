@@ -73,8 +73,8 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
                         new_message.append(line)
                     first = True
             
-                self.logger.debug('\n'.join(new_message), duration=duration, id='query')
-                self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration, id='query')
+                self.logger.debug('\n'.join(new_message), duration=duration)
+                self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration)
             
             self.db.queries.append({
                 'sql': sql,
@@ -108,7 +108,7 @@ class SQLRealTimeModule(DevServerModule):
     Outputs SQL queries as they happen.
     """
     
-    logger_name = 'sql'
+    logger_name = 'sql/query'
     
     def process_init(self, request):
         self.old_cursor = util.CursorDebugWrapper
@@ -123,7 +123,7 @@ class SQLSummaryModule(DevServerModule):
     Outputs a summary SQL queries.
     """
     
-    logger_name = 'sql'
+    logger_name = 'sql/summary'
     
     def process_complete(self, request):
         self.logger.info('%(calls)s queries' % dict(
