@@ -9,6 +9,7 @@ Included modules:
 * SQLSummary: Outputs a summary of your SQL usage.
 * ProfileSummary: Outputs a summary of the request performance.
 * CacheSummary: Outputs a summary of your cache calls at the end of the request.
+* MemoryUse: Outputs a notice when memory use is increased (at the end of a request cycle).
 
 Installation
 ------------
@@ -22,7 +23,7 @@ django-devserver has some optional dependancies, which we highly recommend insta
 
 * ``pip install sqlparse`` -- pretty SQL formatting
 * ``pip install werkzeug`` -- interactive debugger
-
+* ``pip install guppy`` -- tracks memory usage (required for MemoryUseModule)
 
 You will need to include ``devserver`` in your ``INSTALLED_APPS``::
 
@@ -39,6 +40,7 @@ You may also specify additional modules to load via the ``DEVSERVER_MODULES`` se
 	    'devserver.modules.profile.ProfileSummaryModule',
 
 	    # Modules not enabled by default
+	    'devserver.modules.profile.MemoryUseModule',
 	    'devserver.modules.cache.CacheSummaryModule',
 	)
 
