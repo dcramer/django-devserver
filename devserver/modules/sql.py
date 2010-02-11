@@ -121,9 +121,11 @@ class SQLSummaryModule(DevServerModule):
     logger_name = 'sql'
     
     def process_complete(self, request):
-        unique = set([s['sql'] for s in connection.queries])
-        self.logger.info('%(calls)s queries with %(dupes)s duplicates' % dict(
-            calls = len(connection.queries),
-            dupes = len(connection.queries) - len(unique),
-        ), duration=sum(float(c['time']) for c in connection.queries))
+        num_queries = len(connection.queries)
+        if num_queries:
+            unique = set([s['sql'] for s in connection.queries])
+            self.logger.info('%(calls)s queries with %(dupes)s duplicates' % dict(
+                calls = num_queries,
+                dupes = num_queries - len(unique),
+            ), duration=sum(float(c['time']) for c in connection.queries))
         
