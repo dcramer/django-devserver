@@ -46,7 +46,7 @@ except ImportError:
     class MemoryUseModule(DevServerModule):
         def __new__(cls, *args, **kwargs):
             warnings.warn('MemoryUseModule requires guppy to be installed.')
-            return super(MemoryUseModule, cls).__new__(cls, *args, **kwargs)
+            return super(MemoryUseModule, cls).__new__(cls)
 else:
     class MemoryUseModule(DevServerModule):
         """
