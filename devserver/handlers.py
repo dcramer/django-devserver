@@ -1,6 +1,7 @@
 from django.core.handlers.wsgi import WSGIHandler, set_script_prefix, signals, base, STATUS_CODE_TEXT
 from django.core.management.color import color_style
 from django.utils import termcolors
+from django.utils.encoding import smart_str
 
 import datetime
 import sys
@@ -33,6 +34,8 @@ class GenericLogger(object):
         if args:
             message = message % args
 
+        message = smart_str(message)
+
         if level == logging.ERROR:
             message = self.style.ERROR(message)
         elif level == logging.WARN:
@@ -63,7 +66,7 @@ class GenericLogger(object):
 
         message = '%s %s' % (tpl, '\n'.join(new_message))
 
-        sys.stdout.write(message.encode('utf8') + '\n')
+        sys.stdout.write(message + '\n')
 
     warn = lambda x, *a, **k: x.log(level=logging.WARN, *a, **k)
     info = lambda x, *a, **k: x.log(level=logging.INFO, *a, **k)
