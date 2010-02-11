@@ -101,7 +101,7 @@ class SQLRealTimeModule(DevServerModule):
     Outputs SQL queries as they happen.
     """
     
-    logger_name = 'sql/query'
+    logger_name = 'sql'
     
     def process_init(self, request):
         if not isinstance(util.CursorDebugWrapper, DatabaseStatTracker):
@@ -118,7 +118,7 @@ class SQLSummaryModule(DevServerModule):
     Outputs a summary SQL queries.
     """
     
-    logger_name = 'sql/summary'
+    logger_name = 'sql'
     
     def process_complete(self, request):
         unique = set([s['sql'] for s in connection.queries])
