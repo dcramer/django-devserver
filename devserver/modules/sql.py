@@ -33,6 +33,8 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
     """
     Replacement for CursorDebugWrapper which outputs information as it happens.
     """
+    logger = None
+    
     def execute(self, sql, params=()):
         start = datetime.now()
         try:
@@ -63,18 +65,10 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
 
             if self.logger:
                 message = sqlparse.format(sql, reindent=True, keyword_case='upper')
-                first = False
-                # TODO: find a better way to handle indentation?
-                new_message = []
-                for line in message.split('\n'):
-                    if first:
-                        new_message.append('\t\t\t%s' % line)
-                    else:
-                        new_message.append(line)
-                    first = True
             
-                self.logger.debug('\n'.join(new_message), duration=duration)
-                self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration)
+                self.logger.debug(message, duration=duration)
+                if self.cursor.rowcount >= 0:
+                    self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration)
             
             self.db.queries.append({
                 'sql': sql,

@@ -6,6 +6,12 @@ import datetime
 import sys
 import logging
 
+import re
+
+_bash_colors = re.compile(r'\x1b\[[^m]*m')
+def strip_bash_colors(string):
+    return _bash_colors.sub('', string)
+
 class GenericLogger(object):
     def __init__(self, module):
         self.module = module
@@ -23,7 +29,6 @@ class GenericLogger(object):
             tpl_bits.append(self.style.SQL_FIELD('[%s]' % self.module.logger_name))
         if duration:
             tpl_bits.append(self.style.SQL_KEYWORD('(%.2fms)' % duration))
-        tpl_bits.append('%(message)s')
 
         if args:
             message = message % args
@@ -39,15 +44,25 @@ class GenericLogger(object):
                 HTTP_INFO = termcolors.make_style(fg='red')
             message = HTTP_INFO(message)
 
-        tpl = ' '.join(tpl_bits) + '\t'
-
-        message = tpl % dict(
+        tpl = ' '.join(tpl_bits) % dict(
             id=id,
             module=self.module.logger_name,
-            message=message,
             asctime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         )
         
+        indent = ' ' * (len(strip_bash_colors(tpl)) + 1)
+        
+        new_message = []
+        first = True
+        for line in message.split('\n'):
+            if first:
+                new_message.append(line)
+            else:
+                new_message.append('%s%s' % (indent, line))
+            first = False
+
+        message = '%s %s' % (tpl, '\n'.join(new_message))
+
         sys.stdout.write(message.encode('utf8') + '\n')
 
     warn = lambda x, *a, **k: x.log(level=logging.WARN, *a, **k)
