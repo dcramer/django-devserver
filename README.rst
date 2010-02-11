@@ -32,7 +32,7 @@ You will need to include ``devserver`` in your ``INSTALLED_APPS``::
 	    ...
 	)
 
-You may also specify additional modules to load via the ``DEVSERVER_MODULES`` setting::
+Specify modules to load via the ``DEVSERVER_MODULES`` setting::
 
 	DEVSERVER_MODULES = (
 	    'devserver.modules.sql.SQLRealTimeModule',
@@ -43,6 +43,10 @@ You may also specify additional modules to load via the ``DEVSERVER_MODULES`` se
 	    'devserver.modules.profile.MemoryUseModule',
 	    'devserver.modules.cache.CacheSummaryModule',
 	)
+
+Disable SQL query truncation (used in SQLRealTimeModule) with the ``DEVSERVER_TRUNCATE_SQL`` setting::
+
+	DEVSERVER_TRUNCATE_SQL = False
 
 Usage
 -----

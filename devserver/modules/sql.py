@@ -24,6 +24,11 @@ except ImportError:
         def format(text, *args, **kwargs):
             return text
 
+import re
+_sql_fields_re = re.compile(r'SELECT .*? FROM')
+def truncate_sql(sql):
+    return _sql_fields_re.sub('SELECT ... FROM', sql)
+
 # # TODO:This should be set in the toolbar loader as a default and panels should
 # # get a copy of the toolbar object with access to its config dictionary
 # SQL_WARNING_THRESHOLD = getattr(settings, 'DEVSERVER_CONFIG', {}) \
@@ -64,6 +69,8 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
                 sql = sql % params
 
             if self.logger:
+                if settings.DEVSERVER_TRUNCATE_SQL:
+                    sql = truncate_sql(sql)
                 message = sqlparse.format(sql, reindent=True, keyword_case='upper')
             
                 self.logger.debug(message, duration=duration)
