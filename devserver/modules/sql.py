@@ -105,12 +105,14 @@ class SQLRealTimeModule(DevServerModule):
     logger_name = 'sql/query'
     
     def process_init(self, request):
-        self.old_cursor = util.CursorDebugWrapper
-        util.CursorDebugWrapper = DatabaseStatTracker
+        if not isinstance(util.CursorDebugWrapper, DatabaseStatTracker):
+            self.old_cursor = util.CursorDebugWrapper
+            util.CursorDebugWrapper = DatabaseStatTracker
         DatabaseStatTracker.logger = self.logger
     
     def process_complete(self, request):
-        util.CursorDebugWrapper = self.old_cursor
+        if isinstance(util.CursorDebugWrapper, DatabaseStatTracker):
+            util.CursorDebugWrapper = self.old_cursor
 
 class SQLSummaryModule(DevServerModule):
     """
