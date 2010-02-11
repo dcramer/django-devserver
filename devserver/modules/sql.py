@@ -86,10 +86,9 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
             if self.logger:
                 message = sqlparse.format(sql, reindent=True, keyword_case='upper')
 
-                # TODO: find a better way to handle indentation?
-                new_message = ['Executed %s times'] + ['\t\t\t%s' % line for line in message.split('\n')]
+                message = 'Executed %s times\n%s' % message
             
-                self.logger.debug('\n'.join(new_message), duration=duration, id='query')
+                self.logger.debug(message, duration=duration)
                 self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration, id='query')
             
             self.db.queries.append({
