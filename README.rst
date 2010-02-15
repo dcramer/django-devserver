@@ -54,6 +54,11 @@ Once installed, using the new runserver replacement is easy::
 
 Note: This will force ``settings.DEBUG`` to ``True``.
 
+You may also use devserver's middleware outside of the management command::
+
+	MIDDLEWARE_CLASSES = (
+		'devserver.middleware.DevServerMiddleware',
+	)
 
 -------
 Modules
@@ -87,6 +92,9 @@ devserver.modules.ajax.AjaxDumpModule
   
   	DEVSERVER_AJAX_CONTENT_LENGTH = 300
 
+devserver.modules.request.SessionInfoModule
+  Outputs information about the current session and user.
+
 
 ----------------
 Building Modules
@@ -101,10 +109,10 @@ Let's take a sample module, which simple tells us when a request has started, an
 	class UselessModule(DevServerModule):
 	    logger_name = 'useless'
 	    
-	    def process_init(self, request):
+	    def process_request(self, request):
 	        self.logger.info('Request started')
 	    
-	    def process_complete(self, request):
+	    def process_response(self, request, response):
 	        self.logger.info('Request ended')
 
 There are additional arguments which may be sent to logger methods, such as ``duration``::
