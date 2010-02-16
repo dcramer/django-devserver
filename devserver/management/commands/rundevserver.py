@@ -14,6 +14,8 @@ class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option('--noreload', action='store_false', dest='use_reloader', default=True,
             help='Tells Django to NOT use the auto-reloader.'),
+        make_option('--nowerkzeug', action='store_false', dest='use_werkzeug', default=True,
+            help='Tells Django to NOT use the Werkzeug interactive debugger.'),
         make_option('--adminmedia', dest='admin_media_path', default='',
             help='Specifies the directory from which to serve admin media.'),
     )
@@ -40,14 +42,15 @@ class Command(BaseCommand):
         if not port.isdigit():
             raise CommandError("%r is not a valid port number." % port)
 
-        try:
-            from werkzeug import run_simple, DebuggedApplication
-        except ImportError, e:
-            werkzeug = False
-        else:
-            werkzeug = True
-            from django.views import debug
-            debug.technical_500_response = null_technical_500_response
+        if use_werkzeug:
+            try:
+                from werkzeug import run_simple, DebuggedApplication
+            except ImportError, e:
+                use_werkzeug = False
+            else:
+                use_werkzeug = True
+                from django.views import debug
+                debug.technical_500_response = null_technical_500_response
 
         use_reloader = options.get('use_reloader', True)
         admin_media_path = options.get('admin_media_path', '')
@@ -76,7 +79,7 @@ class Command(BaseCommand):
 
             try:
                 handler = AdminMediaHandler(DevServerHandler(), admin_media_path)
-                if werkzeug:
+                if use_werkzeug:
                     run_simple(addr, int(port), DebuggedApplication(handler, True),
                         use_reloader=use_reloader, use_debugger=True)
                 else:
