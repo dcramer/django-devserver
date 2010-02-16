@@ -42,6 +42,12 @@ class Command(BaseCommand):
         if not port.isdigit():
             raise CommandError("%r is not a valid port number." % port)
 
+        use_reloader = options.get('use_reloader', True)
+        admin_media_path = options.get('admin_media_path', '')
+        shutdown_message = options.get('shutdown_message', '')
+        use_werkzeug = options.get('use_werkzeug', '')
+        quit_command = (sys.platform == 'win32') and 'CTRL-BREAK' or 'CONTROL-C'
+
         if use_werkzeug:
             try:
                 from werkzeug import run_simple, DebuggedApplication
@@ -52,10 +58,6 @@ class Command(BaseCommand):
                 from django.views import debug
                 debug.technical_500_response = null_technical_500_response
 
-        use_reloader = options.get('use_reloader', True)
-        admin_media_path = options.get('admin_media_path', '')
-        shutdown_message = options.get('shutdown_message', '')
-        quit_command = (sys.platform == 'win32') and 'CTRL-BREAK' or 'CONTROL-C'
 
         def inner_run():
             # Flag the server as active
