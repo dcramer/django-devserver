@@ -7,7 +7,6 @@ that aims to replace the built-in runserver command by providing additional
 functionality such as real-time SQL debugging.
 
 :copyright: 2010 by David Cramer
-:license: BSD, see LICENSE for more details.
 """
 
 __all__ = ('__version__', '__build__', '__docformat__', 'get_revision')
