@@ -26,7 +26,10 @@ except ImportError:
 
 import re
 _sql_fields_re = re.compile(r'SELECT .*? FROM')
-def truncate_sql(sql):
+_sql_aggregates_re = re.compile(r'SELECT *?(COUNT|SUM|AVERAGE|MIN|MAX).*? FROM')
+def truncate_sql(sql, aggregates=True):
+    if not aggregates and _sql_aggregates_re.match(sql):
+        return sql
     return _sql_fields_re.sub('SELECT ... FROM', sql)
 
 # # TODO:This should be set in the toolbar loader as a default and panels should
@@ -68,9 +71,10 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
             except:
                 sql = sql % params
 
-            if self.logger:
+            if self.logger and (not settings.DEVSERVER_SQL_MIN_DURATION
+                    or duration > settings.DEVSERVER_SQL_MIN_DURATION):
                 if settings.DEVSERVER_TRUNCATE_SQL:
-                    sql = truncate_sql(sql)
+                    sql = truncate_sql(sql, aggregates=settings.DEVSERVER_TRUNCATE_AGGREGATES)
                 message = sqlparse.format(sql, reindent=True, keyword_case='upper')
             
                 self.logger.debug(message, duration=duration)
