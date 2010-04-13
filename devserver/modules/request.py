@@ -15,7 +15,7 @@ class SessionInfoModule(DevServerModule):
             request.session.save = self.handle_session_save
     
     def process_response(self, request, response):
-        if self.has_session:
+        if getattr(self, 'has_session', False):
             if getattr(request, 'user', None) and request.user.is_authenticated():
                 user = '%s (id:%s)' % (request.user.username, request.user.pk)
             else:
