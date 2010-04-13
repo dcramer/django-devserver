@@ -67,6 +67,7 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
             # del cur_frame
             
             try:
+                # XXX: It might just be more sane to not bother relying on this per #12923
                 sql = self.db.ops.last_executed_query(self.cursor, sql, params)
             except:
                 sql = sql % params
@@ -138,5 +139,5 @@ class SQLSummaryModule(DevServerModule):
             self.logger.info('%(calls)s queries with %(dupes)s duplicates' % dict(
                 calls = num_queries,
                 dupes = num_queries - len(unique),
-            ), duration=sum(float(c['time']) for c in connection.queries))
+            ), duration=sum(float(c.get('time', 0)) for c in connection.queries))
         
