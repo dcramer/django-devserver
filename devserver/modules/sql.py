@@ -26,7 +26,7 @@ except ImportError:
 
 import re
 _sql_fields_re = re.compile(r'SELECT .*? FROM')
-_sql_aggregates_re = re.compile(r'SELECT *?(COUNT|SUM|AVERAGE|MIN|MAX).*? FROM')
+_sql_aggregates_re = re.compile(r'SELECT .*?(COUNT|SUM|AVERAGE|MIN|MAX).*? FROM')
 def truncate_sql(sql, aggregates=True):
     if not aggregates and _sql_aggregates_re.match(sql):
         return sql
