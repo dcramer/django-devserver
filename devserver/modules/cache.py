@@ -27,7 +27,7 @@ class CacheSummaryModule(DevServerModule):
         hits = stats.get_total_hits('cache')
         misses = stats.get_total_misses_for_function('cache', cache.get) + stats.get_total_misses_for_function('cache', cache.get_many)
 
-        if calls:
+        if calls and (hits or misses):
             ratio = int(hits / float(misses + hits) * 100)
         else:
             ratio = 100
