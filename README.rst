@@ -2,7 +2,11 @@
 About
 -----
 
-A drop in replacement for Django's built-in runserver command. Features an extendable interface for handling things such as real-time logging. It will also use the werkzeug interactive debugger if it is available.
+A drop in replacement for Django's built-in runserver command. Features include:
+
+* An extendable interface for handling things such as real-time logging.
+* Integration with the werkzeug interactive debugger.
+* An improved runserver allowing you to process requests simultaneously.
 
 .. image:: http://www.pastethat.com/media/files/2010/02/10/Screen_shot_2010-02-10_at_10.05.31_PM.png
    :alt: devserver screenshot
@@ -43,16 +47,21 @@ Specify modules to load via the ``DEVSERVER_MODULES`` setting::
 	    'devserver.modules.cache.CacheSummaryModule',
 	)
 
+You may also specify prefixes to skip processing for. By default, ``ADMIN_MEDIA_PREFIX`` and ``MEDIA_URL`` will be ignored (assuming ``MEDIA_URL`` is relative)::
+
+	DEVSERVER_IGNORED_PREFIXES = ['/media', '/uploads']
 
 -----
 Usage
 -----
 
-Once installed, using the new runserver replacement is easy::
+Once installed, using the new runserver replacement is easy. You must specify verbosity of 0 to disable real-time log output::
 
-	python manage.py rundevserver
+	python manage.py runserver
 
 Note: This will force ``settings.DEBUG`` to ``True``.
+
+Please see ``python manage.py runserver --help`` for additional options.
 
 You may also use devserver's middleware outside of the management command::
 

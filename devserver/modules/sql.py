@@ -44,6 +44,14 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
     logger = None
     
     def execute(self, sql, params=()):
+        if self.logger and (not settings.DEVSERVER_SQL_MIN_DURATION
+                or duration > settings.DEVSERVER_SQL_MIN_DURATION):
+            message = sql % params
+            if settings.DEVSERVER_TRUNCATE_SQL:
+                message = truncate_sql(message, aggregates=settings.DEVSERVER_TRUNCATE_AGGREGATES)
+            message = sqlparse.format(message, reindent=True, keyword_case='upper')
+            self.logger.debug(message)
+            
         start = datetime.now()
         try:
             return self.cursor.execute(sql, params)
@@ -66,24 +74,13 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
             #     pass
             # del cur_frame
             
-            try:
-                # XXX: It might just be more sane to not bother relying on this per #12923
-                sql = self.db.ops.last_executed_query(self.cursor, sql, params)
-            except:
-                sql = sql % params
-
             if self.logger and (not settings.DEVSERVER_SQL_MIN_DURATION
                     or duration > settings.DEVSERVER_SQL_MIN_DURATION):
-                if settings.DEVSERVER_TRUNCATE_SQL:
-                    sql = truncate_sql(sql, aggregates=settings.DEVSERVER_TRUNCATE_AGGREGATES)
-                message = sqlparse.format(sql, reindent=True, keyword_case='upper')
-            
-                self.logger.debug(message, duration=duration)
                 if self.cursor.rowcount >= 0:
                     self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration)
-            
+                
             self.db.queries.append({
-                'sql': sql,
+                'sql': sql % params,
                 'time': duration,
             })
             

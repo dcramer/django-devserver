@@ -10,7 +10,7 @@ functionality such as real-time SQL debugging.
 """
 
 __all__ = ('__version__', '__build__', '__docformat__', 'get_revision')
-__version__ = (0, 0, 3)
+__version__ = (0, 0, 4)
 __docformat__ = 'restructuredtext en'
 
 import os
@@ -21,7 +21,7 @@ def _get_git_revision(path):
         return None
     fh = open(revision_file, 'r')
     try:
-        return fh.read()
+        return fh.read().strip()
     finally:
         fh.close()
 
@@ -38,3 +38,9 @@ def get_revision():
     return None
 
 __build__ = get_revision()
+
+def get_version():
+    base = '.'.join(map(str, __version__))
+    if __build__:
+        base = '%s (%s)' % (base, __build__)
+    return base

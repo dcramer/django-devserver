@@ -64,7 +64,7 @@ class GenericLogger(object):
 
         message = '%s %s' % (tpl, '\n'.join(new_message))
 
-        sys.stdout.write(message + '\n')
+        sys.stdout.write('    ' + message + '\n')
 
     warn = lambda x, *a, **k: x.log(level=logging.WARN, *a, **k)
     info = lambda x, *a, **k: x.log(level=logging.INFO, *a, **k)

@@ -1,14 +1,45 @@
 from django.core.management.base import BaseCommand, CommandError
-from optparse import make_option
+from django.core.servers.basehttp import AdminMediaHandler, WSGIServerException, \
+                                         WSGIRequestHandler, WSGIServer
+from django.core.handlers.wsgi import WSGIHandler
+from django.conf import settings
+
 import os
 import sys
-
 import django
-from django.core.servers.basehttp import run, AdminMediaHandler, WSGIServerException
+import SocketServer
+
+from optparse import make_option
+
 from devserver.handlers import DevServerHandler
 
 def null_technical_500_response(request, exc_type, exc_value, tb):
     raise exc_type, exc_value, tb
+
+class SlimWSGIRequestHandler(WSGIRequestHandler):
+    """
+    Hides all requests that originate from ```MEDIA_URL`` as well as any
+    request originating with a prefix included in ``DEVSERVER_IGNORED_PREFIXES``.
+    """
+    def log_message(self, format, *args):
+        if self.path.startswith(settings.MEDIA_URL):
+            return
+        for path in getattr(settings, 'DEVSERVER_IGNORED_PREFIXES', []):
+            if self.path.startswith(path):
+                return
+        return WSGIRequestHandler.log_message(self, format, *args)
+
+def run(addr, port, wsgi_handler, mixin=None):
+    if mixin:
+        class new(mixin, WSGIServer):
+            def __init__(self, *args, **kwargs):
+                WSGIServer.__init__(self, *args, **kwargs)
+    else:
+        new = WSGIServer
+    server_address = (addr, port)
+    httpd = new(server_address, SlimWSGIRequestHandler)
+    httpd.set_app(wsgi_handler)
+    httpd.serve_forever()
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
@@ -18,6 +49,8 @@ class Command(BaseCommand):
             help='Tells Django to NOT use the Werkzeug interactive debugger.'),
         make_option('--adminmedia', dest='admin_media_path', default='',
             help='Specifies the directory from which to serve admin media.'),
+        make_option('--forked', action='store_true', dest='use_forked', default=False,
+            help='Use forking instead of threading for multiple web requests.'),
     )
     help = "Starts a lightweight Web server for development which outputs additional debug information."
     args = '[optional port number, or ipaddr:port]'
@@ -62,6 +95,7 @@ class Command(BaseCommand):
         def inner_run():
             # Flag the server as active
             from devserver import settings
+            import devserver
             settings.DEVSERVER_ACTIVE = True
             settings.DEBUG = True
 
@@ -71,6 +105,7 @@ class Command(BaseCommand):
             print "Validating models..."
             self.validate(display_num_errors=True)
             print "\nDjango version %s, using settings %r" % (django.get_version(), settings.SETTINGS_MODULE)
+            print "Running django-devserver %s" % (devserver.get_version(),)
             print "Development server is running at http://%s:%s/" % (addr, port)
             print "Quit the server with %s." % quit_command
 
@@ -79,13 +114,23 @@ class Command(BaseCommand):
             # in the "--noreload" case).
             translation.activate(settings.LANGUAGE_CODE)
 
+            if int(options['verbosity']) < 1:
+                base_handler = WSGIHandler
+            else:
+                base_handler = DevServerHandler
+
+            if options['use_forked']:
+                mixin = SocketServer.ForkingMixIn
+            else:
+                mixin = SocketServer.ThreadingMixIn
+
             try:
-                handler = AdminMediaHandler(DevServerHandler(), admin_media_path)
+                handler = AdminMediaHandler(base_handler(), admin_media_path)
                 if use_werkzeug:
                     run_simple(addr, int(port), DebuggedApplication(handler, True),
                         use_reloader=use_reloader, use_debugger=True)
                 else:
-                    run(addr, int(port), handler)
+                    run(addr, int(port), handler, mixin)
             except WSGIServerException, e:
                 # Use helpful error messages instead of ugly tracebacks.
                 ERRORS = {

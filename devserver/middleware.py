@@ -12,6 +12,10 @@ class DevServerMiddleware(object):
         
         if request.path == '/favicon.ico':
             return False
+
+        for path in getattr(settings, 'DEVSERVER_IGNORED_PREFIXES', []):
+            if request.path.startswith(path):
+                return False
         
         return True
     
