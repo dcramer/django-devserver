@@ -46,7 +46,7 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
     def execute(self, sql, params=()):
         if self.logger and (not settings.DEVSERVER_SQL_MIN_DURATION
                 or duration > settings.DEVSERVER_SQL_MIN_DURATION):
-            message = sql % params
+            message = sql % tuple(params)
             if settings.DEVSERVER_TRUNCATE_SQL:
                 message = truncate_sql(message, aggregates=settings.DEVSERVER_TRUNCATE_AGGREGATES)
             message = sqlparse.format(message, reindent=True, keyword_case='upper')
