@@ -80,7 +80,7 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
                     self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration)
                 
             self.db.queries.append({
-                'sql': sql % params,
+                'sql': sql % tuple(params),
                 'time': duration,
             })
             
