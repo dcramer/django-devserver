@@ -44,7 +44,7 @@ class DevServerMiddleware(object):
         if self.should_process(request):
             for mod in MODULES:
                 mod.process_view(request, view_func, view_args, view_kwargs)
-        return view_func(request, *view_args, **view_kwargs)
+        #return view_func(request, *view_args, **view_kwargs)
 
     def process_init(self, request):
         from devserver.utils.stats import stats
