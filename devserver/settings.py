@@ -2,8 +2,8 @@ from django.conf import settings
 
 DEVSERVER_MODULES = getattr(settings, 'DEVSERVER_MODULES', (
     'devserver.modules.sql.SQLRealTimeModule',
-    'devserver.modules.sql.SQLSummaryModule',
-    'devserver.modules.profile.ProfileSummaryModule',
+    # 'devserver.modules.sql.SQLSummaryModule',
+    # 'devserver.modules.profile.ProfileSummaryModule',
     # 'devserver.modules.request.SessionInfoModule',
     # 'devserver.modules.profile.MemoryUseModule',
     # 'devserver.modules.profile.LeftOversModule',
