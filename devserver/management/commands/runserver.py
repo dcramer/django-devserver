@@ -36,7 +36,7 @@ class SlimWSGIRequestHandler(WSGIRequestHandler):
             if self.path.startswith(path):
                 return
         
-        format += " (time: %.2fs; sql: %.2fs (%dq))"
+        format += " (time: %.2fms; sql: %.2fms (%dq))"
         args = list(args) + [
             ms_from_timedelta(duration) / 1000,
             sum(float(c.get('time', 0)) for c in connection.queries),
