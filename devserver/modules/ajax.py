@@ -1,5 +1,6 @@
 from devserver.modules import DevServerModule
 from devserver import settings
+import json
 
 class AjaxDumpModule(DevServerModule):
     """
@@ -12,4 +13,7 @@ class AjaxDumpModule(DevServerModule):
         if request.is_ajax():
             # Let's do a quick test to see what kind of response we have
             if len(response.content) < settings.DEVSERVER_AJAX_CONTENT_LENGTH:
-                self.logger.info(response.content)
+                content = response.content
+                if settings.DEVSERVER_AJAX_PRETTY_PRINT:
+                    content = json.dumps(json.loads(content), indent=4)
+                self.logger.info(content)
