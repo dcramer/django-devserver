@@ -121,7 +121,7 @@ class Command(BaseCommand):
             self.validate(display_num_errors=True)
             print "\nDjango version %s, using settings %r" % (django.get_version(), settings.SETTINGS_MODULE)
             print "Running django-devserver %s" % (devserver.get_version(),)
-            print "Development server is running at http://%s:%s/" % (addr, port)
+            print "%s server is running at http://%s:%s/" % (options['use_forked'] and 'Forked' or 'Threaded', addr, port)
             print "Quit the server with %s." % quit_command
 
             # django.core.management.base forces the locale to en-us. We should
