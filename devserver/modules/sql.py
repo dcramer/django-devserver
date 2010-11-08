@@ -44,9 +44,10 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
     logger = None
     
     def execute(self, sql, params=()):
+        formatted_sql = sql % (params if isinstance(params, dict) else tuple(params))
         if self.logger and (not settings.DEVSERVER_SQL_MIN_DURATION
                 or duration > settings.DEVSERVER_SQL_MIN_DURATION):
-            message = sql % tuple(params)
+            message = formatted_sql
             if settings.DEVSERVER_TRUNCATE_SQL:
                 message = truncate_sql(message, aggregates=settings.DEVSERVER_TRUNCATE_AGGREGATES)
             message = sqlparse.format(message, reindent=True, keyword_case='upper')
@@ -80,7 +81,7 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
                     self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration)
                 
             self.db.queries.append({
-                'sql': sql % tuple(params),
+                'sql': formatted_sql,
                 'time': duration,
             })
             
