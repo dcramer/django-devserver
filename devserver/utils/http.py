@@ -18,8 +18,8 @@ class SlimWSGIRequestHandler(WSGIRequestHandler):
     def log_message(self, format, *args):
         duration = datetime.now() - self._start_request
         
-        if self.path.startswith(settings.MEDIA_URL):
-            return
+        # if self.path.startswith(settings.MEDIA_URL):
+        #     return
         for path in getattr(settings, 'DEVSERVER_IGNORED_PREFIXES', []):
             if self.path.startswith(path):
                 return

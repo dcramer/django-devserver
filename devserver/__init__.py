@@ -10,7 +10,7 @@ functionality such as real-time SQL debugging.
 """
 
 __all__ = ('__version__', '__build__', '__docformat__', 'get_revision')
-__version__ = (0, 1, 3)
+__version__ = (0, 1, 4)
 __docformat__ = 'restructuredtext en'
 
 import os
