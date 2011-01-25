@@ -31,7 +31,7 @@ class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option('--noreload', action='store_false', dest='use_reloader', default=True,
             help='Tells Django to NOT use the auto-reloader.'),
-        make_option('--nowerkzeug', action='store_false', dest='use_werkzeug', default=True,
+        make_option('--werkzeug', action='store_false', dest='use_werkzeug', default=False,
             help='Tells Django to NOT use the Werkzeug interactive debugger.'),
         make_option('--adminmedia', dest='admin_media_path', default='',
             help='Specifies the directory from which to serve admin media.'),
@@ -64,7 +64,7 @@ class Command(BaseCommand):
         use_reloader = options.get('use_reloader', True)
         admin_media_path = options.get('admin_media_path', '')
         shutdown_message = options.get('shutdown_message', '')
-        use_werkzeug = options.get('use_werkzeug', '')
+        use_werkzeug = options.get('use_werkzeug', False)
         quit_command = (sys.platform == 'win32') and 'CTRL-BREAK' or 'CONTROL-C'
 
         if use_werkzeug:
