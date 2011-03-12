@@ -31,8 +31,8 @@ class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option('--noreload', action='store_false', dest='use_reloader', default=True,
             help='Tells Django to NOT use the auto-reloader.'),
-        make_option('--werkzeug', action='store_false', dest='use_werkzeug', default=False,
-            help='Tells Django to NOT use the Werkzeug interactive debugger.'),
+        make_option('--werkzeug', action='store_true', dest='use_werkzeug', default=False,
+            help='Tells Django to use the Werkzeug interactive debugger.'),
         make_option('--adminmedia', dest='admin_media_path', default='',
             help='Specifies the directory from which to serve admin media.'),
         make_option('--forked', action='store_true', dest='use_forked', default=False,
