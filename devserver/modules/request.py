@@ -1,3 +1,4 @@
+import urllib
 from devserver.modules import DevServerModule
 
 class SessionInfoModule(DevServerModule):
@@ -28,3 +29,23 @@ class SessionInfoModule(DevServerModule):
     def handle_session_save(self, *args, **kwargs):
         self._save(*args, **kwargs)
         self.logger.info('Session %s has been saved.', self.session.session_key)
+class RequestDumpModule(DevServerModule):
+    """
+    Dumps the request headers and variables.
+    """
+
+    logger_name = 'request'
+
+    def process_request(self, request):
+        req = self.logger.style.SQL_KEYWORD('%s %s %s\n' % (request.method, '?'.join((request.META['PATH_INFO'], request.META['QUERY_STRING'])), request.META['SERVER_PROTOCOL']))
+        for var, val in request.META.items():
+            if var.startswith('HTTP_'):
+                var = var[5:].replace('_', '-').title()
+                req += '%s: %s\n' % (self.logger.style.SQL_FIELD(var), val)
+        if request.META['CONTENT_LENGTH']:
+            req += '%s: %s\n' % (self.logger.style.SQL_FIELD('Content-Length'), request.META['CONTENT_LENGTH'])
+        if request.POST:
+            req += '\n%s\n' % self.logger.style.HTTP_INFO(urllib.urlencode(dict((k, v.encode('utf8')) for k,v in request.POST.items())))
+        if request.FILES:
+            req += '\n%s\n' % self.logger.style.HTTP_NOT_MODIFIED(urllib.urlencode(request.FILES))
+        self.logger.info('Full request:\n%s', req)
