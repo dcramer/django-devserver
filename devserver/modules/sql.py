@@ -3,10 +3,7 @@ Based on initial work from django-debug-toolbar
 """
 
 from datetime import datetime
-import sys
-import traceback
 
-import django
 from django.db import connection
 from django.db.backends import util
 #from django.template import Node
@@ -37,7 +34,14 @@ def truncate_sql(sql, aggregates=True):
 # SQL_WARNING_THRESHOLD = getattr(settings, 'DEVSERVER_CONFIG', {}) \
 #                             .get('SQL_WARNING_THRESHOLD', 500)
 
-class DatabaseStatTracker(util.CursorDebugWrapper):
+try:
+    from debug_toolbar.panels.sql import DatabaseStatTracker
+    debug_toolbar = True
+except ImportError:
+    debug_toolbar = False
+    DatabaseStatTracker = util.CursorDebugWrapper
+
+class DatabaseStatTracker(DatabaseStatTracker):
     """
     Replacement for CursorDebugWrapper which outputs information as it happens.
     """
@@ -45,8 +49,7 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
     
     def execute(self, sql, params=()):
         formatted_sql = sql % (params if isinstance(params, dict) else tuple(params))
-        if self.logger and (not settings.DEVSERVER_SQL_MIN_DURATION
-                or duration > settings.DEVSERVER_SQL_MIN_DURATION):
+        if self.logger:
             message = formatted_sql
             if settings.DEVSERVER_TRUNCATE_SQL:
                 message = truncate_sql(message, aggregates=settings.DEVSERVER_TRUNCATE_AGGREGATES)
@@ -54,41 +57,28 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
             self.logger.debug(message)
             
         start = datetime.now()
+        
         try:
-            return self.cursor.execute(sql, params)
+            return super(DatabaseStatTracker, self).execute(sql, params)
         finally:
             stop = datetime.now()
             duration = ms_from_timedelta(stop - start)
-            # stacktrace = tidy_stacktrace(traceback.extract_stack())
-            # template_info = None
-            # # TODO: can probably move this into utils
-            # cur_frame = sys._getframe().f_back
-            # try:
-            #     while cur_frame is not None:
-            #         if cur_frame.f_code.co_name == 'render':
-            #             node = cur_frame.f_locals['self']
-            #             if isinstance(node, Node):
-            #                 template_info = get_template_info(node.source)
-            #                 break
-            #         cur_frame = cur_frame.f_back
-            # except:
-            #     pass
-            # del cur_frame
             
             if self.logger and (not settings.DEVSERVER_SQL_MIN_DURATION
                     or duration > settings.DEVSERVER_SQL_MIN_DURATION):
                 if self.cursor.rowcount >= 0:
                     self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration)
-                
-            self.db.queries.append({
-                'sql': formatted_sql,
-                'time': duration,
-            })
+            
+            if not (debug_toolbar or settings.DEBUG):
+                self.db.queries.append({
+                    'sql': formatted_sql,
+                    'time': duration,
+                })
             
     def executemany(self, sql, param_list):
         start = datetime.now()
         try:
-            return self.cursor.executemany(sql, param_list)
+            return super(DatabaseStatTracker, self).executemany(sql, param_list)
         finally:
             stop = datetime.now()
             duration = ms_from_timedelta(stop - start)
@@ -100,11 +90,12 @@ class DatabaseStatTracker(util.CursorDebugWrapper):
             
                 self.logger.debug(message, duration=duration)
                 self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration, id='query')
-            
-            self.db.queries.append({
-                'sql': '%s times: %s' % (len(param_list), sql),
-                'time': duration,
-            })
+
+            if not (debug_toolbar or settings.DEBUG):
+                self.db.queries.append({
+                    'sql': '%s times: %s' % (len(param_list), sql),
+                    'time': duration,
+                })
 
 class SQLRealTimeModule(DevServerModule):
     """
