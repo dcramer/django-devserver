@@ -27,7 +27,7 @@ class GenericLogger(object):
         else:
             tpl_bits.append(self.style.SQL_FIELD('[%s]' % self.module.logger_name))
         if duration:
-            tpl_bits.append(self.style.SQL_KEYWORD('(%.2fms)' % duration))
+            tpl_bits.append(self.style.SQL_KEYWORD('(%dms)' % duration))
 
         if args:
             message = message % args

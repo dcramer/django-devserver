@@ -128,5 +128,5 @@ class SQLSummaryModule(DevServerModule):
             self.logger.info('%(calls)s queries with %(dupes)s duplicates' % dict(
                 calls = num_queries,
                 dupes = num_queries - len(unique),
-            ), duration=sum(float(c.get('time', 0)) for c in connection.queries))
+            ), duration=sum(float(c.get('time', 0)) for c in connection.queries) * 1000)
         

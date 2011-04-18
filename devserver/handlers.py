@@ -4,6 +4,10 @@ from django.conf import settings
 from devserver.middleware import DevServerMiddleware
 
 class DevServerHandler(WSGIHandler):
+    def __init__(self, application):
+        self.application = application
+        super(DevServerHandler, self).__init__()
+
     def load_middleware(self):
         super(DevServerHandler, self).load_middleware()
 
