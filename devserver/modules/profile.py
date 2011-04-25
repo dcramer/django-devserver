@@ -100,7 +100,6 @@ else:
             out = StringIO()
             if request.devserver_profiler_run:
                 request.devserver_profiler.print_stats(stream=out)
-                print len(request.devserver_profiler.get_stats().timings.items())
                 self.logger.info(out.getvalue())
 
     class devserver_profile(object):
