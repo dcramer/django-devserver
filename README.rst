@@ -26,6 +26,7 @@ django-devserver has some optional dependancies, which we highly recommend insta
 * ``pip install sqlparse`` -- pretty SQL formatting
 * ``pip install werkzeug`` -- interactive debugger
 * ``pip install guppy`` -- tracks memory usage (required for MemoryUseModule)
+* ``pip install line_profiler`` -- does line-by-line profiling (required for LineProfilerModule)
 
 You will need to include ``devserver`` in your ``INSTALLED_APPS``::
 
@@ -45,6 +46,7 @@ Specify modules to load via the ``DEVSERVER_MODULES`` setting::
 	    'devserver.modules.ajax.AjaxDumpModule',
 	    'devserver.modules.profile.MemoryUseModule',
 	    'devserver.modules.cache.CacheSummaryModule',
+	    'devserver.modules.profile.LineProfilerModule',
 	)
 
 You may also specify prefixes to skip processing for. By default, ``ADMIN_MEDIA_PREFIX`` and ``MEDIA_URL`` will be ignored (assuming ``MEDIA_URL`` is relative)::
@@ -91,6 +93,14 @@ devserver.modules.profile.ProfileSummaryModule
 devserver.modules.profile.MemoryUseModule
   Outputs a notice when memory use is increased (at the end of a request cycle).
 
+devserver.modules.profile.LineProfilerModule
+  Profiles view methods on a line by line basis. To profile a method, you must decorate it with devserver.modules.profile.devserver_profile. The decoration takes an optional argument ``follows`` which is a sequence of functions that   are called by your view function that you would also like profiled.
+
+    @devserver_profile(follow=[foo, bar])
+    def home(request):
+        result['foo'] = foo()
+        result['bar'] = bar()
+
 devserver.modules.cache.CacheSummaryModule
   Outputs a summary of your cache calls at the end of the request.
 
@@ -103,6 +113,7 @@ devserver.modules.ajax.AjaxDumpModule
 
 devserver.modules.request.SessionInfoModule
   Outputs information about the current session and user.
+
 
 
 ----------------
