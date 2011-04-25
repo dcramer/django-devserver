@@ -81,9 +81,11 @@ except ImportError:
             warnings.warn('LineProfilerModule requires line_profiler to be installed.')
             return super(LineProfilerModule, cls).__new__(cls)
 
-        def devserver_profile(func):
-            return func
-           
+        class devserver_profile(object):
+            def __init__(self, follow=[]):
+                pass
+            def __call__(self, func):
+                return func
 else:
     class LineProfilerModule(DevServerModule):
         """
