@@ -78,6 +78,7 @@ Modules
 django-devserver includes several modules by default, but is also extendable by 3rd party modules.
 
 devserver.modules.sql.SQLRealTimeModule
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   Outputs queries as they happen to the terminal, including time taken.
   
   Disable SQL query truncation (used in SQLRealTimeModule) with the ``DEVSERVER_TRUNCATE_SQL`` setting::
@@ -85,26 +86,35 @@ devserver.modules.sql.SQLRealTimeModule
   	DEVSERVER_TRUNCATE_SQL = False
 
 devserver.modules.sql.SQLSummaryModule
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   Outputs a summary of your SQL usage.
 
 devserver.modules.profile.ProfileSummaryModule
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   Outputs a summary of the request performance.
 
 devserver.modules.profile.MemoryUseModule
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   Outputs a notice when memory use is increased (at the end of a request cycle).
 
 devserver.modules.profile.LineProfilerModule
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   Profiles view methods on a line by line basis. To profile a method, you must decorate it with devserver.modules.profile.devserver_profile. The decoration takes an optional argument ``follows`` which is a sequence of functions that   are called by your view function that you would also like profiled.
 
-    @devserver_profile(follow=[foo, bar])
-    def home(request):
-        result['foo'] = foo()
-        result['bar'] = bar()
+  An example of a decorated function::
+  
+  	@devserver_profile(follow=[foo, bar])
+  	def home(request):
+  	    result['foo'] = foo()
+  	    result['bar'] = bar()
+
 
 devserver.modules.cache.CacheSummaryModule
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   Outputs a summary of your cache calls at the end of the request.
 
 devserver.modules.ajax.AjaxDumpModule
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   Outputs the content of any AJAX responses
   
   Change the maximum response length to dump with the ``DEVSERVER_AJAX_CONTENT_LENGTH`` setting::
@@ -112,6 +122,7 @@ devserver.modules.ajax.AjaxDumpModule
   	DEVSERVER_AJAX_CONTENT_LENGTH = 300
 
 devserver.modules.request.SessionInfoModule
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   Outputs information about the current session and user.
 
 
