@@ -98,7 +98,7 @@ else:
         def process_complete(self, request):
             from cStringIO import StringIO
             out = StringIO()
-            if request.devserver_profiler_run:
+            if hasattr(request,'devserver_profiler_run') and request.devserver_profiler_run:
                 request.devserver_profiler.print_stats(stream=out)
                 self.logger.info(out.getvalue())
 
