@@ -17,6 +17,12 @@ class SlimWSGIRequestHandler(WSGIRequestHandler):
         
     def log_message(self, format, *args):
         duration = datetime.now() - self._start_request
+
+        env = self.get_environ()
+        
+        if settings.MEDIA_URL.startswith('http:'):
+            if ('http://%s%s' % (env['HTTP_HOST'], self.path)).startswith(settings.MEDIA_URL):
+                return
         
         # if self.path.startswith(settings.MEDIA_URL):
         #     return

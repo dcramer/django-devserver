@@ -4,10 +4,10 @@ class DevServerMiddleware(object):
     def should_process(self, request):
         from django.conf import settings
         
-        if getattr(settings, 'STATIC_URL', None) and request.path.startswith(settings.STATIC_URL):
+        if getattr(settings, 'STATIC_URL', None) and request.build_absolute_uri().startswith(request.build_absolute_uri(settings.STATIC_URL)):
             return False
 
-        if settings.MEDIA_URL and request.path.startswith(settings.MEDIA_URL):
+        if settings.MEDIA_URL and request.build_absolute_uri().startswith(request.build_absolute_uri(settings.MEDIA_URL)):
             return False
         
         if settings.ADMIN_MEDIA_PREFIX and request.path.startswith(settings.ADMIN_MEDIA_PREFIX):
