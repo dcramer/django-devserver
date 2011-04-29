@@ -1,5 +1,6 @@
 from devserver.modules import DevServerModule
 from devserver.utils.time import ms_from_timedelta
+from devserver.settings import DEVSERVER_AUTO_PROFILE
 
 from datetime import datetime
 
@@ -89,20 +90,35 @@ except ImportError:
 else:
     class LineProfilerModule(DevServerModule):
         """
-        Outputs a Line by Line profile of any @profile'd functions that were run
+        Outputs a Line by Line profile of any @devserver_profile'd functions that were run
         """
         logger_name = 'profile'
 
-        def process_init(self, request):
+        def process_view(self, request, view_func, view_args, view_kwargs):
             request.devserver_profiler = LineProfiler()
             request.devserver_profiler_run = False
+            if (DEVSERVER_AUTO_PROFILE):
+                _unwrap_closure_and_profile(request.devserver_profiler, view_func)
+                request.devserver_profiler.enable_by_count()
 
         def process_complete(self, request):
-            from cStringIO import StringIO
-            out = StringIO()
-            if hasattr(request,'devserver_profiler_run') and request.devserver_profiler_run:
+            if hasattr(request,'devserver_profiler_run') and (DEVSERVER_AUTO_PROFILE or request.devserver_profiler_run):
+                from cStringIO import StringIO
+                out = StringIO()
+                if (DEVSERVER_AUTO_PROFILE):
+                    request.devserver_profiler.disable_by_count()
                 request.devserver_profiler.print_stats(stream=out)
                 self.logger.info(out.getvalue())
+
+    def _unwrap_closure_and_profile(profiler, func):
+        if not hasattr(func, 'func_code'):
+            return
+        profiler.add_function(func)
+        if func.func_closure:
+            for cell in func.func_closure:
+                if hasattr(cell.cell_contents, 'func_code'):
+                    _unwrap_closure_and_profile(profiler, cell.cell_contents)
+
 
     class devserver_profile(object):
         def __init__(self, follow=[]):
@@ -121,5 +137,4 @@ else:
                     request.devserver_profiler.disable_by_count()
                 return retval
             return functools.wraps(func)(profiled_func)
-    
-        
+
