@@ -99,7 +99,7 @@ devserver.modules.profile.MemoryUseModule
 
 devserver.modules.profile.LineProfilerModule
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  Profiles view methods on a line by line basis. To profile a method, you must decorate it with devserver.modules.profile.devserver_profile. The decoration takes an optional argument ``follows`` which is a sequence of functions that   are called by your view function that you would also like profiled.
+  Profiles view methods on a line by line basis. There are 2 ways to profile your view functions, by setting setting.DEVSERVER_AUTO_PROFILE = True or by decorating the view functions you want profiled with devserver.modules.profile.devserver_profile. The decoration takes an optional argument ``follow`` which is a sequence of functions that are called by your view function that you would also like profiled.
 
   An example of a decorated function::
   
@@ -107,6 +107,23 @@ devserver.modules.profile.LineProfilerModule
   	def home(request):
   	    result['foo'] = foo()
   	    result['bar'] = bar()
+
+When using the decorator, we recommend that rather than import the decoration directly from devserver that you have code somewhere in your project like::
+
+	try:
+	    if 'devserver' not in settings.INSTALLED_APPS:
+	        raise ImportError
+	    from devserver.modules.profile import devserver_profile
+	except ImportError:
+	    class devserver_profile(object):
+	        def __init__(self, *args, **kwargs):
+	            pass
+	        def __call__(self, func):
+	            def nothing(*args, **kwargs):
+	                return func(*args, **kwargs)
+	            return wraps(func)(nothing)
+
+By importing the decoration using this method, devserver_profile will be a pass through decoration if you aren't using devserver (eg in production)
 
 
 devserver.modules.cache.CacheSummaryModule
