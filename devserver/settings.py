@@ -21,3 +21,5 @@ DEVSERVER_AJAX_CONTENT_LENGTH = getattr(settings, 'DEVSERVER_AJAX_CONTENT_LENGTH
 
 # Minimum time a query must execute to be shown, value is in MS
 DEVSERVER_SQL_MIN_DURATION = getattr(settings, 'DEVSERVER_SQL_MIN_DURATION', None)
+
+DEVSERVER_AUTO_PROFILE = getattr(settings, 'DEVSERVER_AUTO_PROFILE', False)

@@ -1,8 +1,10 @@
 from devserver.modules import DevServerModule
 from devserver.utils.time import ms_from_timedelta
+from devserver.settings import DEVSERVER_AUTO_PROFILE
 
 from datetime import datetime
 
+import functools
 import gc
 
 class ProfileSummaryModule(DevServerModule):
@@ -70,4 +72,69 @@ else:
         
             if self.usage:
                 self.logger.info('Memory usage was increased by %s', filesizeformat(self.usage))
-    
+
+try:
+    from line_profiler import LineProfiler
+except ImportError:
+    class LineProfilerModule(DevServerModule):
+        
+        def __new__(cls, *args, **kwargs):
+            warnings.warn('LineProfilerModule requires line_profiler to be installed.')
+            return super(LineProfilerModule, cls).__new__(cls)
+
+        class devserver_profile(object):
+            def __init__(self, follow=[]):
+                pass
+            def __call__(self, func):
+                return func
+else:
+    class LineProfilerModule(DevServerModule):
+        """
+        Outputs a Line by Line profile of any @devserver_profile'd functions that were run
+        """
+        logger_name = 'profile'
+
+        def process_view(self, request, view_func, view_args, view_kwargs):
+            request.devserver_profiler = LineProfiler()
+            request.devserver_profiler_run = False
+            if (DEVSERVER_AUTO_PROFILE):
+                _unwrap_closure_and_profile(request.devserver_profiler, view_func)
+                request.devserver_profiler.enable_by_count()
+
+        def process_complete(self, request):
+            if hasattr(request,'devserver_profiler_run') and (DEVSERVER_AUTO_PROFILE or request.devserver_profiler_run):
+                from cStringIO import StringIO
+                out = StringIO()
+                if (DEVSERVER_AUTO_PROFILE):
+                    request.devserver_profiler.disable_by_count()
+                request.devserver_profiler.print_stats(stream=out)
+                self.logger.info(out.getvalue())
+
+    def _unwrap_closure_and_profile(profiler, func):
+        if not hasattr(func, 'func_code'):
+            return
+        profiler.add_function(func)
+        if func.func_closure:
+            for cell in func.func_closure:
+                if hasattr(cell.cell_contents, 'func_code'):
+                    _unwrap_closure_and_profile(profiler, cell.cell_contents)
+
+
+    class devserver_profile(object):
+        def __init__(self, follow=[]):
+            self.follow = follow
+            
+        def __call__(self, func):
+            def profiled_func(request, *args, **kwargs):
+                try:
+                    request.devserver_profiler.add_function(func)
+                    request.devserver_profiler_run = True
+                    for f in self.follow:
+                        request.devserver_profiler.add_function(f)
+                    request.devserver_profiler.enable_by_count()
+                    retval = func(request, *args, **kwargs)
+                finally:
+                    request.devserver_profiler.disable_by_count()
+                return retval
+            return functools.wraps(func)(profiled_func)
+
