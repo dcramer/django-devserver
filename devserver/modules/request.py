@@ -25,10 +25,12 @@ class SessionInfoModule(DevServerModule):
             request.session.save = self._save
             self._save = None
             self.session = None
+            self.has_session = False
         
     def handle_session_save(self, *args, **kwargs):
         self._save(*args, **kwargs)
         self.logger.info('Session %s has been saved.', self.session.session_key)
+
 class RequestDumpModule(DevServerModule):
     """
     Dumps the request headers and variables.
