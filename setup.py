@@ -15,4 +15,5 @@ setup(name='django-devserver',
         "Operating System :: OS Independent",
         "Topic :: Software Development"
     ],
+    license="BSD",
 )
