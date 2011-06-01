@@ -76,6 +76,8 @@ else:
 try:
     from line_profiler import LineProfiler
 except ImportError:
+    import warnings
+    
     class LineProfilerModule(DevServerModule):
         
         def __new__(cls, *args, **kwargs):
