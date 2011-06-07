@@ -51,8 +51,8 @@ class Command(BaseCommand):
         from django.conf import settings
 
         if not addrport:
-            addr = settings.get("RUNSERVER_DEFAULT_ADDR", '')
-            port = settings.get("RUNSERVER_DEFAULT_PORT", '8000')
+            addr = settings.get("DEVSERVER_DEFAULT_ADDR", '')
+            port = settings.get("DEVSERVER_DEFAULT_PORT", '8000')
         else:
             try:
                 addr, port = addrport.split(':')
