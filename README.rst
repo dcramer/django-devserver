@@ -63,6 +63,8 @@ Once installed, using the new runserver replacement is easy. You must specify ve
 
 Note: This will force ``settings.DEBUG`` to ``True``.
 
+By default, ``devserver`` would bind itself to 127.0.0.1:8000. To change this default, ``DEVSERVER_DEFAULT_ADDR`` and ``DEVSERVER_DEFAULT_PORT`` settings are available. 
+
 Please see ``python manage.py runserver --help`` for additional options.
 
 You may also use devserver's middleware outside of the management command::
