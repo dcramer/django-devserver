@@ -10,7 +10,7 @@ class DevServerMiddleware(object):
         if settings.MEDIA_URL and request.build_absolute_uri().startswith(request.build_absolute_uri(settings.MEDIA_URL)):
             return False
         
-        if settings.ADMIN_MEDIA_PREFIX and request.path.startswith(settings.ADMIN_MEDIA_PREFIX):
+        if getattr(settings, 'ADMIN_MEDIA_PREFIX', None) and request.path.startswith(settings.ADMIN_MEDIA_PREFIX):
             return False
         
         if request.path == '/favicon.ico':
