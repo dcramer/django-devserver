@@ -21,7 +21,9 @@ class SlimWSGIRequestHandler(WSGIRequestHandler):
 
         env = self.get_environ()
         
-        for url in (settings.STATIC_URL, settings.MEDIA_URL):
+        for url in (getattr(settings, 'STATIC_URL', None), settings.MEDIA_URL):
+            if not url:
+                continue
             if self.path.startswith(url):
                 return
             elif url.startswith('http:'):
