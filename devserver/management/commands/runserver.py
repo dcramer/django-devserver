@@ -37,6 +37,8 @@ class Command(BaseCommand):
             help='Specifies the directory from which to serve admin media.'),
         make_option('--forked', action='store_true', dest='use_forked', default=False,
             help='Use forking instead of threading for multiple web requests.'),
+        make_option('--dozer', action='store_true', dest='user_dozer', default=False,
+            help='Enable the Dozer memory debugging middleware.'),
     )
     help = "Starts a lightweight Web server for development which outputs additional debug information."
     args = '[optional port number, or ipaddr:port]'
@@ -77,7 +79,6 @@ class Command(BaseCommand):
                 from django.views import debug
                 debug.technical_500_response = null_technical_500_response
 
-
         def inner_run():
             # Flag the server as active
             from devserver import settings
@@ -109,15 +110,19 @@ class Command(BaseCommand):
                 mixin = SocketServer.ForkingMixIn
             else:
                 mixin = SocketServer.ThreadingMixIn
-
+                
+            handler = AdminMediaHandler(base_handler(), admin_media_path)
+            if options['user_dozer']:
+                from dozer import Dozer
+                handler = Dozer(handler)
+                
             try:
-                handler = AdminMediaHandler(base_handler(), admin_media_path)
                 if use_werkzeug:
                     run_simple(addr, int(port), DebuggedApplication(handler, True),
                         use_reloader=use_reloader, use_debugger=True)
                 else:
                     run(addr, int(port), handler, mixin)
-            except WSGIServerException, e:
+            except WSGIServerException:
                 # Use helpful error messages instead of ugly tracebacks.
                 ERRORS = {
                     13: "You don't have permission to access that port.",

@@ -2,3 +2,4 @@ Django>=1.1
 sqlparse
 werkzeug
 guppy
+Dozer
