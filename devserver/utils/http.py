@@ -8,8 +8,9 @@ from datetime import datetime
 
 class SlimWSGIRequestHandler(WSGIRequestHandler):
     """
-    Hides all requests that originate from ```MEDIA_URL`` as well as any
-    request originating with a prefix included in ``DEVSERVER_IGNORED_PREFIXES``.
+    Hides all requests that originate from either ``STATIC_URL`` or ``MEDIA_URL`` 
+    as well as any request originating with a prefix included in 
+    ``DEVSERVER_IGNORED_PREFIXES``.
     """
     def handle(self, *args, **kwargs):
         self._start_request = datetime.now()
@@ -20,12 +21,15 @@ class SlimWSGIRequestHandler(WSGIRequestHandler):
 
         env = self.get_environ()
         
-        if settings.MEDIA_URL.startswith('http:'):
-            if ('http://%s%s' % (env['HTTP_HOST'], self.path)).startswith(settings.MEDIA_URL):
+        for url in (getattr(settings, 'STATIC_URL', None), settings.MEDIA_URL):
+            if not url:
+                continue
+            if self.path.startswith(url):
                 return
-        
-        # if self.path.startswith(settings.MEDIA_URL):
-        #     return
+            elif url.startswith('http:'):
+                if ('http://%s%s' % (env['HTTP_HOST'], self.path)).startswith(url):
+                    return
+
         for path in getattr(settings, 'DEVSERVER_IGNORED_PREFIXES', []):
             if self.path.startswith(path):
                 return

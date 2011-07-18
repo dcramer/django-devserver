@@ -49,9 +49,12 @@ class Command(BaseCommand):
     def handle(self, addrport='', *args, **options):
         if args:
             raise CommandError('Usage is runserver %s' % self.args)
+
+        from django.conf import settings
+
         if not addrport:
-            addr = ''
-            port = '8000'
+            addr = getattr(settings, 'DEVSERVER_DEFAULT_ADDR', '')
+            port = getattr(settings, 'DEVSERVER_DEFAULT_PORT', '8000')
         else:
             try:
                 addr, port = addrport.split(':')
