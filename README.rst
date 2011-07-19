@@ -49,7 +49,7 @@ Specify modules to load via the ``DEVSERVER_MODULES`` setting::
 	    'devserver.modules.profile.LineProfilerModule',
 	)
 
-You may also specify prefixes to skip processing for. By default, ``ADMIN_MEDIA_PREFIX`` and ``MEDIA_URL`` will be ignored (assuming ``MEDIA_URL`` is relative)::
+You may also specify prefixes to skip processing for. By default, ``ADMIN_MEDIA_PREFIX``, ``MEDIA_URL`` and ``STATIC_URL`` (for Django >= 1.3) will be ignored (assuming ``MEDIA_URL`` and ``STATIC_URL`` is relative)::
 
 	DEVSERVER_IGNORED_PREFIXES = ['/media', '/uploads']
 
