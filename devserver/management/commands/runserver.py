@@ -125,7 +125,7 @@ class Command(BaseCommand):
                         use_reloader=use_reloader, use_debugger=True)
                 else:
                     run(addr, int(port), handler, mixin)
-            except WSGIServerException:
+            except WSGIServerException, e
                 # Use helpful error messages instead of ugly tracebacks.
                 ERRORS = {
                     13: "You don't have permission to access that port.",
