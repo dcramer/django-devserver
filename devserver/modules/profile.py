@@ -56,22 +56,18 @@ else:
         """
         logger_name = 'profile'
     
-        def process_init(self, request):
-            from guppy import hpy
-        
-            self.usage = 0
-
-            self.heapy = hpy()
-            self.heapy.setrelheap()
+        def __init__(self, request):
+            super(MemoryUseModule, self).__init__(request)
+            self.hpy = hpy()
+            self.oldh = self.hpy.heap()
+            self.logger.info('heap size is %s', filesizeformat(self.oldh.size))
 
         def process_complete(self, request):
-            h = self.heapy.heap()
-        
-            if h.domisize > self.usage:
-                self.usage = h.domisize
-        
-            if self.usage:
-                self.logger.info('Memory usage was increased by %s', filesizeformat(self.usage))
+            newh = self.hpy.heap()
+            alloch = newh - self.oldh
+            dealloch = self.oldh - newh
+            self.oldh = newh
+            self.logger.info('%s allocated, %s deallocated, heap size is %s', *map(filesizeformat, [alloch.size, dealloch.size, newh.size]))
 
 try:
     from line_profiler import LineProfiler
