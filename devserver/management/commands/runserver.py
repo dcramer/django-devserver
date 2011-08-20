@@ -144,7 +144,8 @@ class Command(BaseCommand):
                     print shutdown_message
                 sys.exit(0)
 
-        if use_reloader:
+        # werkzeug does its own autoreload stuff
+        if use_reloader and not use_werkzeug:
             from django.utils import autoreload
             autoreload.main(inner_run)
         else:
