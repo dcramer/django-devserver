@@ -122,7 +122,7 @@ class Command(BaseCommand):
             try:
                 if use_werkzeug:
                     run_simple(addr, int(port), DebuggedApplication(handler, True),
-                        use_reloader=use_reloader, use_debugger=True)
+                        use_reloader=False, use_debugger=True)
                 else:
                     run(addr, int(port), handler, mixin)
             except WSGIServerException, e:
@@ -144,6 +144,7 @@ class Command(BaseCommand):
                     print shutdown_message
                 sys.exit(0)
 
+        # werkzeug does its own autoreload stuff
         if use_reloader:
             from django.utils import autoreload
             autoreload.main(inner_run)
