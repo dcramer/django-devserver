@@ -31,8 +31,8 @@ django-devserver has some optional dependancies, which we highly recommend insta
 You will need to include ``devserver`` in your ``INSTALLED_APPS``::
 
 	INSTALLED_APPS = (
-	    'devserver',
 	    ...
+	    'devserver',            
 	)
 
 Specify modules to load via the ``DEVSERVER_MODULES`` setting::
