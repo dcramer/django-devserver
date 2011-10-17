@@ -40,6 +40,8 @@ class Command(BaseCommand):
             help='Use forking instead of threading for multiple web requests.'),
         make_option('--dozer', action='store_true', dest='use_dozer', default=False,
             help='Enable the Dozer memory debugging middleware.'),
+        make_option('--wsgi-app', dest='wsgi_app', default=None,
+            help='Load the specified WSGI app as the server endpoint.'),
     )
     help = "Starts a lightweight Web server for development which outputs additional debug information."
     args = '[optional port number, or ipaddr:port]'
@@ -83,6 +85,7 @@ class Command(BaseCommand):
         shutdown_message = options.get('shutdown_message', '')
         use_werkzeug = options.get('use_werkzeug', False)
         quit_command = (sys.platform == 'win32') and 'CTRL-BREAK' or 'CONTROL-C'
+        wsgi_app = options.get('wsgi_app', None)
 
         if use_werkzeug:
             try:
@@ -125,6 +128,14 @@ class Command(BaseCommand):
                 app = WSGIHandler()
             else:
                 app = DevServerHandler()
+
+            if wsgi_app:
+                try:
+                    app = __import__(wsgi_app, {}, {}, ['application']).application
+                except (ImportError, AttributeError):
+                    raise
+            else:
+                app = None
 
             if options['use_forked']:
                 mixin = SocketServer.ForkingMixIn
