@@ -1,4 +1,5 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError, handle_default_options
 from django.core.servers.basehttp import AdminMediaHandler, WSGIServerException, \
                                          WSGIServer
 from django.core.handlers.wsgi import WSGIHandler
@@ -46,11 +47,22 @@ class Command(BaseCommand):
     # Validation is called explicitly each time the server is reloaded.
     requires_model_validation = False
 
+    def run_from_argv(self, argv):
+        parser = self.create_parser(argv[0], argv[1])
+        default_args = getattr(settings, 'DEVSERVER_ARGS', None)
+        if default_args:
+            options, args = parser.parse_args(default_args)
+        else:
+            options = None
+
+        options, args = parser.parse_args(argv[2:], options)
+
+        handle_default_options(options)
+        self.execute(*args, **options.__dict__)
+
     def handle(self, addrport='', *args, **options):
         if args:
             raise CommandError('Usage is runserver %s' % self.args)
-
-        from django.conf import settings
 
         if not addrport:
             addr = getattr(settings, 'DEVSERVER_DEFAULT_ADDR', '')
@@ -76,6 +88,7 @@ class Command(BaseCommand):
             try:
                 from werkzeug import run_simple, DebuggedApplication
             except ImportError, e:
+                print >> sys.stderr, "WARNING: Unable to initialize werkzeug: %s" % e
                 use_werkzeug = False
             else:
                 use_werkzeug = True
@@ -96,7 +109,11 @@ class Command(BaseCommand):
             self.validate(display_num_errors=True)
             print "\nDjango version %s, using settings %r" % (django.get_version(), settings.SETTINGS_MODULE)
             print "Running django-devserver %s" % (devserver.get_version(),)
-            print "%s server is running at http://%s:%s/" % (options['use_forked'] and 'Forked' or 'Threaded', addr, port)
+            if use_werkzeug:
+                server_type = 'werkzeug'
+            else:
+                server_type = 'django'
+            print "%s %s server is running at http://%s:%s/" % (options['use_forked'] and 'Forked' or 'Threaded', server_type, addr, port)
             print "Quit the server with %s." % quit_command
 
             # django.core.management.base forces the locale to en-us. We should
@@ -113,17 +130,17 @@ class Command(BaseCommand):
                 mixin = SocketServer.ForkingMixIn
             else:
                 mixin = SocketServer.ThreadingMixIn
-            
+
             middleware = getattr(settings, 'DEVSERVER_WSGI_MIDDLEWARE', [])
             for middleware in middleware:
                 module, class_name = middleware.rsplit('.', 1)
                 app = getattr(__import__(module, {}, {}, [class_name]), class_name)(app)
-            
+
             app = AdminMediaHandler(app, admin_media_path)
             if options['use_dozer']:
                 from dozer import Dozer
                 app = Dozer(app)
-                
+
             try:
                 if use_werkzeug:
                     run_simple(addr, int(port), DebuggedApplication(app, True),

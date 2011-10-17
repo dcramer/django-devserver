@@ -1,5 +1,4 @@
 from django.core.handlers.wsgi import WSGIHandler
-from django.conf import settings
 
 from devserver.middleware import DevServerMiddleware
 
