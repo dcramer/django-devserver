@@ -134,8 +134,6 @@ class Command(BaseCommand):
                     app = __import__(wsgi_app, {}, {}, ['application']).application
                 except (ImportError, AttributeError):
                     raise
-            else:
-                app = None
 
             if options['use_forked']:
                 mixin = SocketServer.ForkingMixIn
