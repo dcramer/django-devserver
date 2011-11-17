@@ -4,7 +4,13 @@ Based on initial work from django-debug-toolbar
 
 from datetime import datetime
 
-from django.db import connection
+try:
+    from django.db import connections
+except ImportError:
+    # Django version < 1.2
+    from django.db import connection
+    connections = {'default': connection}
+
 from django.db.backends import util
 #from django.template import Node
 
@@ -122,11 +128,15 @@ class SQLSummaryModule(DevServerModule):
     logger_name = 'sql'
     
     def process_complete(self, request):
-        num_queries = len(connection.queries)
+        queries = [
+            q for alias in connections
+            for q in connections[alias].queries
+        ]
+        num_queries = len(queries)
         if num_queries:
-            unique = set([s['sql'] for s in connection.queries])
+            unique = set([s['sql'] for s in queries])
             self.logger.info('%(calls)s queries with %(dupes)s duplicates' % dict(
                 calls = num_queries,
                 dupes = num_queries - len(unique),
-            ), duration=sum(float(c.get('time', 0)) for c in connection.queries) * 1000)
+            ), duration=sum(float(c.get('time', 0)) for c in queries) * 1000)
         
