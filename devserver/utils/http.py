@@ -1,6 +1,12 @@
 from django.conf import settings
 from django.core.servers.basehttp import WSGIRequestHandler
-from django.db import connection
+
+try:
+    from django.db import connections
+except ImportError:
+    # Django version < 1.2
+    from django.db import connection
+    connections = {'default': connection}
 
 from devserver.utils.time import ms_from_timedelta
 
@@ -35,9 +41,13 @@ class SlimWSGIRequestHandler(WSGIRequestHandler):
                 return
         
         format += " (time: %.2fs; sql: %dms (%dq))"
+        queries = [
+            q for alias in connections
+            for q in connections[alias].queries
+        ]
         args = list(args) + [
             ms_from_timedelta(duration) / 1000,
-            sum(float(c.get('time', 0)) for c in connection.queries) * 1000,
-            len(connection.queries),
+            sum(float(c.get('time', 0)) for c in queries) * 1000,
+            len(queries),
         ]
         return WSGIRequestHandler.log_message(self, format, *args)
