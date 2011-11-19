@@ -30,7 +30,17 @@ except ImportError:
 import re
 _sql_fields_re = re.compile(r'SELECT .*? FROM')
 _sql_aggregates_re = re.compile(r'SELECT .*?(COUNT|SUM|AVERAGE|MIN|MAX).*? FROM')
+_sql_in_numbers_re = re.compile(r'IN\s*\(([\d\s,]+)\)')
+
 def truncate_sql(sql, aggregates=True):
+    def truncate_number_list(match):
+        numbers = match.group(1).split(',')
+        result = [x.strip() for x in numbers[:5]]
+        if len(numbers) > len(result):
+            result.append('...')
+        return u'IN (%s)' % (u', '.join(result))
+    sql = _sql_in_numbers_re.sub(truncate_number_list, sql)
+
     if not aggregates and _sql_aggregates_re.match(sql):
         return sql
     return _sql_fields_re.sub('SELECT ... FROM', sql)
