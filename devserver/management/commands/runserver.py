@@ -4,8 +4,6 @@ from django.core.servers.basehttp import AdminMediaHandler, WSGIServerException,
                                          WSGIServer
 from django.core.handlers.wsgi import WSGIHandler
 
-from django.contrib.staticfiles.handlers import StaticFilesHandler
-
 import os
 import sys
 import django
@@ -152,6 +150,8 @@ class Command(BaseCommand):
                 app = getattr(__import__(module, {}, {}, [class_name]), class_name)(app)
 
             if use_static_files:
+                from django.contrib.staticfiles.handlers import StaticFilesHandler
+
                 app = StaticFilesHandler(app)
             else:
                 app = AdminMediaHandler(app, admin_media_path)
