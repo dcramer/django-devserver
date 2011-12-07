@@ -4,6 +4,8 @@ from django.core.servers.basehttp import AdminMediaHandler, WSGIServerException,
                                          WSGIServer
 from django.core.handlers.wsgi import WSGIHandler
 
+from django.contrib.staticfiles.handlers import StaticFilesHandler
+
 import os
 import sys
 import django
@@ -42,6 +44,9 @@ class Command(BaseCommand):
             help='Enable the Dozer memory debugging middleware.'),
         make_option('--wsgi-app', dest='wsgi_app', default=None,
             help='Load the specified WSGI app as the server endpoint.'),
+        make_option('--staticfiles', dest='use_static_files', default=False,
+            help='Use StaticFilesHandler instead of AdminMediaHandler.'),
+            
     )
     help = "Starts a lightweight Web server for development which outputs additional debug information."
     args = '[optional port number, or ipaddr:port]'
@@ -86,7 +91,8 @@ class Command(BaseCommand):
         use_werkzeug = options.get('use_werkzeug', False)
         quit_command = (sys.platform == 'win32') and 'CTRL-BREAK' or 'CONTROL-C'
         wsgi_app = options.get('wsgi_app', None)
-
+        use_static_files = options.get('use_static_files', False)
+        
         if use_werkzeug:
             try:
                 from werkzeug import run_simple, DebuggedApplication
@@ -145,7 +151,11 @@ class Command(BaseCommand):
                 module, class_name = middleware.rsplit('.', 1)
                 app = getattr(__import__(module, {}, {}, [class_name]), class_name)(app)
 
-            app = AdminMediaHandler(app, admin_media_path)
+            if use_static_files:
+                app = StaticFilesHandler(app)
+            else:
+                app = AdminMediaHandler(app, admin_media_path)
+                
             if options['use_dozer']:
                 from dozer import Dozer
                 app = Dozer(app)
