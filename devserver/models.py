@@ -2,15 +2,17 @@ from django.core import exceptions
 
 from devserver.logger import GenericLogger
 
+
 MODULES = []
+
+
 def load_modules():
     global MODULES
-    
+
     MODULES = []
-    
-    
+
     from devserver import settings
-    
+
     for path in settings.DEVSERVER_MODULES:
         try:
             name, class_name = path.rsplit('.', 1)
@@ -30,8 +32,9 @@ def load_modules():
         try:
             instance = cls(GenericLogger(cls))
         except:
-            raise # Bubble up problem loading panel
+            raise  # Bubble up problem loading panel
 
         MODULES.append(instance)
+
 if not MODULES:
     load_modules()

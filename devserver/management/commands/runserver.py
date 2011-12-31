@@ -13,8 +13,10 @@ from optparse import make_option
 from devserver.handlers import DevServerHandler
 from devserver.utils.http import SlimWSGIRequestHandler
 
+
 def null_technical_500_response(request, exc_type, exc_value, tb):
     raise exc_type, exc_value, tb
+
 
 def run(addr, port, wsgi_handler, mixin=None):
     if mixin:
@@ -27,6 +29,7 @@ def run(addr, port, wsgi_handler, mixin=None):
     httpd = new(server_address, SlimWSGIRequestHandler)
     httpd.set_app(wsgi_handler)
     httpd.serve_forever()
+
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
@@ -91,7 +94,7 @@ class Command(BaseCommand):
         quit_command = (sys.platform == 'win32') and 'CTRL-BREAK' or 'CONTROL-C'
         wsgi_app = options.get('wsgi_app', None)
         use_static_files = options.get('use_static_files', True)
-        
+
         if use_werkzeug:
             try:
                 from werkzeug import run_simple, DebuggedApplication
@@ -149,13 +152,13 @@ class Command(BaseCommand):
             for middleware in middleware:
                 module, class_name = middleware.rsplit('.', 1)
                 app = getattr(__import__(module, {}, {}, [class_name]), class_name)(app)
-                
+
             if 'django.contrib.staticfiles' in settings.INSTALLED_APPS and use_static_files:
                 from django.contrib.staticfiles.handlers import StaticFilesHandler
                 app = StaticFilesHandler(app)
             else:
                 app = AdminMediaHandler(app, admin_media_path)
-                
+
             if options['use_dozer']:
                 from dozer import Dozer
                 app = Dozer(app)
