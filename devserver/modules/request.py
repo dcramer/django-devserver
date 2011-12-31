@@ -46,11 +46,24 @@ class RequestDumpModule(DevServerModule):
         for var, val in request.META.items():
             if var.startswith('HTTP_'):
                 var = var[5:].replace('_', '-').title()
-                req += '%s: %s\n' % (self.logger.style.SQL_FIELD(var), val)
+                req += '%s: %s\n' % (self.logger.style.SQL_KEYWORD(var), val)
         if request.META['CONTENT_LENGTH']:
-            req += '%s: %s\n' % (self.logger.style.SQL_FIELD('Content-Length'), request.META['CONTENT_LENGTH'])
+            req += '%s: %s\n' % (self.logger.style.SQL_KEYWORD('Content-Length'), request.META['CONTENT_LENGTH'])
         if request.POST:
             req += '\n%s\n' % self.logger.style.HTTP_INFO(urllib.urlencode(dict((k, v.encode('utf8')) for k, v in request.POST.items())))
         if request.FILES:
             req += '\n%s\n' % self.logger.style.HTTP_NOT_MODIFIED(urllib.urlencode(request.FILES))
         self.logger.info('Full request:\n%s', req)
+
+class ResponseDumpModule(DevServerModule):
+    """
+    Dumps the request headers and variables.
+    """
+
+    logger_name = 'response'
+
+    def process_response(self, request, response):
+        res = self.logger.style.SQL_FIELD('Status code: %s\n' % response.status_code)
+        res += '\n'.join(['%s: %s' % (self.logger.style.SQL_FIELD(k), v)
+            for k, v in response._headers.values()])
+        self.logger.info('Full response:\n%s', res)
