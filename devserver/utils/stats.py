@@ -7,14 +7,16 @@ from datetime import datetime
 
 from devserver.utils.time import ms_from_timedelta
 
+
 __all__ = ('track', 'stats')
+
 
 class StatCollection(object):
     def __init__(self, *args, **kwargs):
         super(StatCollection, self).__init__(*args, **kwargs)
         self.reset()
-    
-    def run(self, func, key, *args, **kwargs):
+
+    def run(self, func, key, logger, *args, **kwargs):
         """Profile a function and store its information."""
 
         start_time = datetime.now()
@@ -33,7 +35,7 @@ class StatCollection(object):
         row['time'] += this_time
         if value is not None:
             row['hits'] += 1
-        
+
         self.calls.setdefault(key, []).append({
             'func': func,
             'args': args,
@@ -47,9 +49,12 @@ class StatCollection(object):
         row['time'] += this_time
         if value is not None:
             row['hits'] += 1
-        
+
+        if logger:
+            logger.debug('%s("%s") %s (%s)', func.__name__, args[0], 'Miss' if value is None else 'Hit', row['hits'], duration=this_time)
+
         return value
-    
+
     def reset(self):
         """Reset the collection."""
         self.grouped = {}
@@ -66,7 +71,7 @@ class StatCollection(object):
         return self.summary.get(key, {}).get('hits', 0)
 
     def get_total_misses(self, key):
-        return self.get_total_calls(key)-self.get_total_hits(key)
+        return self.get_total_calls(key) - self.get_total_hits(key)
 
     def get_total_hits_for_function(self, key, func):
         return self.grouped.get(key, {}).get(func.__name__, {}).get('hits', 0)
@@ -85,12 +90,13 @@ class StatCollection(object):
 
 stats = StatCollection()
 
-def track(func, key):
+
+def track(func, key, logger):
     """A decorator which handles tracking calls on a function."""
     def wrapped(*args, **kwargs):
         global stats
-        
-        return stats.run(func, key, *args, **kwargs)
+
+        return stats.run(func, key, logger, *args, **kwargs)
     wrapped.__doc__ = func.__doc__
     wrapped.__name__ = func.__name__
     return wrapped

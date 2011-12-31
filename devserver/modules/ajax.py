@@ -1,6 +1,8 @@
+import json
+
 from devserver.modules import DevServerModule
 from devserver import settings
-import json
+
 
 class AjaxDumpModule(DevServerModule):
     """
@@ -8,7 +10,7 @@ class AjaxDumpModule(DevServerModule):
     """
 
     logger_name = 'ajax'
-    
+
     def process_response(self, request, response):
         if request.is_ajax():
             # Let's do a quick test to see what kind of response we have
