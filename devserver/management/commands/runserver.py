@@ -5,6 +5,8 @@ from django.core.servers.basehttp import AdminMediaHandler, WSGIServerException,
 from django.core.handlers.wsgi import WSGIHandler
 
 import os
+import re
+import socket
 import sys
 import django
 import SocketServer
@@ -12,6 +14,14 @@ from optparse import make_option
 
 from devserver.handlers import DevServerHandler
 from devserver.utils.http import SlimWSGIRequestHandler
+
+naiveip_re = re.compile(r"""^(?:
+(?P<addr>
+    (?P<ipv4>\d{1,3}(?:\.\d{1,3}){3}) |         # IPv4 address
+    (?P<ipv6>\[[a-fA-F0-9:]+\]) |               # IPv6 address
+    (?P<fqdn>[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*) # FQDN
+):)?(?P<port>\d+)$""", re.X)
+DEFAULT_PORT = "8000"
 
 def null_technical_500_response(request, exc_type, exc_value, tb):
     raise exc_type, exc_value, tb
@@ -30,6 +40,8 @@ def run(addr, port, wsgi_handler, mixin=None):
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
+        make_option('--ipv6', '-6', action='store_true', dest='use_ipv6', default=False,
+            help='Tells Django to use a IPv6 address.'),
         make_option('--noreload', action='store_false', dest='use_reloader', default=True,
             help='Tells Django to NOT use the auto-reloader.'),
         make_option('--werkzeug', action='store_true', dest='use_werkzeug', default=False,
@@ -67,22 +79,34 @@ class Command(BaseCommand):
         self.execute(*args, **options.__dict__)
 
     def handle(self, addrport='', *args, **options):
+        self.use_ipv6 = options.get('use_ipv6')
+        if self.use_ipv6 and not socket.has_ipv6:
+            raise CommandError('Your Python does not support IPv6.')
         if args:
             raise CommandError('Usage is runserver %s' % self.args)
-
+        
+        self._raw_ipv6 = False
         if not addrport:
             addr = getattr(settings, 'DEVSERVER_DEFAULT_ADDR', '')
             port = getattr(settings, 'DEVSERVER_DEFAULT_PORT', '8000')
         else:
-            try:
-                addr, port = addrport.split(':')
-            except ValueError:
-                addr, port = '', addrport
-        if not addr:
-            addr = '127.0.0.1'
-
-        if not port.isdigit():
-            raise CommandError("%r is not a valid port number." % port)
+            m = re.match(naiveip_re, addrport)
+            if m is None:
+                raise CommandError('"%s" is not a valid port number '
+                                   'or address:port pair.' % addrport)
+            self.addr, _ipv4, _ipv6, _fqdn, self.port = m.groups()
+            if not self.port.isdigit():
+                raise CommandError("%r is not a valid port number." % self.port)
+            if self.addr:
+                if _ipv6:
+                    self.addr = self.addr[1:-1]
+                    self.use_ipv6 = True
+                    self._raw_ipv6 = True
+                elif self.use_ipv6 and not _fqdn:
+                    raise CommandError('"%s" is not a valid IPv6 address.' % self.addr)
+        if not self.addr:
+            self.addr = self.use_ipv6 and '::1' or '127.0.0.1'
+            self._raw_ipv6 = bool(self.use_ipv6)
 
         use_reloader = options.get('use_reloader', True)
         admin_media_path = options.get('admin_media_path', '')
