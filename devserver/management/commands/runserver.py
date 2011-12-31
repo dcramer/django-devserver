@@ -42,10 +42,11 @@ class Command(BaseCommand):
             help='Enable the Dozer memory debugging middleware.'),
         make_option('--wsgi-app', dest='wsgi_app', default=None,
             help='Load the specified WSGI app as the server endpoint.'),
-        make_option('--staticfiles', dest='use_static_files', default=False,
-            help='Use StaticFilesHandler instead of AdminMediaHandler.'),
-            
     )
+    if 'django.contrib.staticfiles' in settings.INSTALLED_APPS:
+        option_list += make_option('--nostatic', dest='use_static_files', default=True,
+                          help='Tells Django to NOT automatically serve static files at STATIC_URL.'),
+
     help = "Starts a lightweight Web server for development which outputs additional debug information."
     args = '[optional port number, or ipaddr:port]'
 
@@ -89,7 +90,7 @@ class Command(BaseCommand):
         use_werkzeug = options.get('use_werkzeug', False)
         quit_command = (sys.platform == 'win32') and 'CTRL-BREAK' or 'CONTROL-C'
         wsgi_app = options.get('wsgi_app', None)
-        use_static_files = options.get('use_static_files', False)
+        use_static_files = options.get('use_static_files', True)
         
         if use_werkzeug:
             try:
@@ -148,10 +149,9 @@ class Command(BaseCommand):
             for middleware in middleware:
                 module, class_name = middleware.rsplit('.', 1)
                 app = getattr(__import__(module, {}, {}, [class_name]), class_name)(app)
-
-            if use_static_files:
+                
+            if 'django.contrib.staticfiles' in settings.INSTALLED_APPS and use_static_files:
                 from django.contrib.staticfiles.handlers import StaticFilesHandler
-
                 app = StaticFilesHandler(app)
             else:
                 app = AdminMediaHandler(app, admin_media_path)
