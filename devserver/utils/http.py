@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.conf import settings
 from django.core.servers.basehttp import WSGIRequestHandler
 
@@ -10,23 +12,22 @@ except ImportError:
 
 from devserver.utils.time import ms_from_timedelta
 
-from datetime import datetime
 
 class SlimWSGIRequestHandler(WSGIRequestHandler):
     """
-    Hides all requests that originate from either ``STATIC_URL`` or ``MEDIA_URL`` 
-    as well as any request originating with a prefix included in 
+    Hides all requests that originate from either ``STATIC_URL`` or ``MEDIA_URL``
+    as well as any request originating with a prefix included in
     ``DEVSERVER_IGNORED_PREFIXES``.
     """
     def handle(self, *args, **kwargs):
         self._start_request = datetime.now()
         return WSGIRequestHandler.handle(self, *args, **kwargs)
-        
+
     def log_message(self, format, *args):
         duration = datetime.now() - self._start_request
 
         env = self.get_environ()
-        
+
         for url in (getattr(settings, 'STATIC_URL', None), settings.MEDIA_URL):
             if not url:
                 continue
@@ -39,7 +40,7 @@ class SlimWSGIRequestHandler(WSGIRequestHandler):
         for path in getattr(settings, 'DEVSERVER_IGNORED_PREFIXES', []):
             if self.path.startswith(path):
                 return
-        
+
         format += " (time: %.2fs; sql: %dms (%dq))"
         queries = [
             q for alias in connections

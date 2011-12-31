@@ -2,6 +2,7 @@ from django.core.handlers.wsgi import WSGIHandler
 
 from devserver.middleware import DevServerMiddleware
 
+
 class DevServerHandler(WSGIHandler):
     def load_middleware(self):
         super(DevServerHandler, self).load_middleware()
