@@ -7,6 +7,7 @@ from django.core.handlers.wsgi import WSGIHandler
 import os
 import sys
 import django
+import imp
 import SocketServer
 from optparse import make_option
 
@@ -130,10 +131,15 @@ class Command(BaseCommand):
                 app = DevServerHandler()
 
             if wsgi_app:
-                try:
-                    app = __import__(wsgi_app, {}, {}, ['application']).application
-                except (ImportError, AttributeError):
-                    raise
+                print "Using WSGI application %r" % wsgi_app
+                if os.path.exists(os.path.abspath(wsgi_app)):
+                    # load from file
+                    app = imp.load_source('wsgi_app', os.path.abspath(wsgi_app)).application
+                else:
+                    try:
+                        app = __import__(wsgi_app, {}, {}, ['application']).application
+                    except (ImportError, AttributeError):
+                        raise
 
             if options['use_forked']:
                 mixin = SocketServer.ForkingMixIn
