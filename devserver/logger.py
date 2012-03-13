@@ -7,20 +7,24 @@ from django.utils.encoding import smart_str
 from django.core.management.color import color_style
 from django.utils import termcolors
 
+
 _bash_colors = re.compile(r'\x1b\[[^m]*m')
+
+
 def strip_bash_colors(string):
     return _bash_colors.sub('', string)
+
 
 class GenericLogger(object):
     def __init__(self, module):
         self.module = module
         self.style = color_style()
-    
+
     def log(self, message, *args, **kwargs):
         id = kwargs.pop('id', None)
         duration = kwargs.pop('duration', None)
         level = kwargs.pop('level', logging.INFO)
-        
+
         tpl_bits = []
         if id:
             tpl_bits.append(self.style.SQL_FIELD('[%s/%s]' % (self.module.logger_name, id)))
@@ -50,9 +54,9 @@ class GenericLogger(object):
             module=self.module.logger_name,
             asctime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         )
-        
+
         indent = ' ' * (len(strip_bash_colors(tpl)) + 1)
-        
+
         new_message = []
         first = True
         for line in message.split('\n'):

@@ -3,10 +3,12 @@ import SocketServer
 import os.path
 
 from django.conf import settings
+from django.views.debug import linebreak_iter
 
 # Figure out some paths
 django_path = os.path.realpath(os.path.dirname(django.__file__))
 socketserver_path = os.path.realpath(os.path.dirname(SocketServer.__file__))
+
 
 def tidy_stacktrace(strace):
     """
@@ -25,6 +27,7 @@ def tidy_stacktrace(strace):
             continue
         trace.append((s[0], s[1], s[2], s[3]))
     return trace
+
 
 def get_template_info(source, context_lines=3):
     line = 0
