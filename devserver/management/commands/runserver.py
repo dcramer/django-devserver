@@ -125,7 +125,7 @@ class Command(BaseCommand):
                 server_type = 'werkzeug'
             else:
                 server_type = 'django'
-            print "%s %s server is running at http://%s:%s/" % ('Forked' if not options['use_werkzeug'] and options['use_forked'] else 'Threaded', server_type, addr, port)
+            print "%s %s server is running at http://%s:%s/" % ('Forked' if options['use_forked'] else 'Threaded', server_type, addr, port)
             print "Quit the server with %s." % quit_command
 
             # django.core.management.base forces the locale to en-us. We should
@@ -172,7 +172,7 @@ class Command(BaseCommand):
             try:
                 if use_werkzeug:
                     run_simple(addr, int(port), DebuggedApplication(app, True),
-                        use_reloader=False, use_debugger=True, threaded=True)
+                        use_reloader=False, use_debugger=True, threaded=not options['use_forked'], processes=10 if options['use_forked'] else 1)
                 else:
                     run(addr, int(port), app, mixin)
             except WSGIServerException, e:
