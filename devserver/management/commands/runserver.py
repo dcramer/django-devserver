@@ -47,7 +47,7 @@ class Command(BaseCommand):
         make_option('--wsgi-app', dest='wsgi_app', default=None,
             help='Load the specified WSGI app as the server endpoint.'),
     )
-    if 'django.contrib.staticfiles' in settings.INSTALLED_APPS:
+    if any(map(lambda app: app in settings.INSTALLED_APPS, ('django.contrib.staticfiles', 'staticfiles', ))):
         option_list += make_option('--nostatic', dest='use_static_files', default=True,
                           help='Tells Django to NOT automatically serve static files at STATIC_URL.'),
 
