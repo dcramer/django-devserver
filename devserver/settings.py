@@ -10,6 +10,7 @@ DEVSERVER_MODULES = getattr(settings, 'DEVSERVER_MODULES', (
     # 'devserver.modules.cache.CacheSummaryModule',
 ))
 
+DEVSERVER_FILTER_SQL = getattr(settings, 'DEVSERVER_FILTER_SQL', False)
 DEVSERVER_TRUNCATE_SQL = getattr(settings, 'DEVSERVER_TRUNCATE_SQL', True)
 
 DEVSERVER_TRUNCATE_AGGREGATES = getattr(settings, 'DEVSERVER_TRUNCATE_AGGREGATES', getattr(settings, 'DEVSERVER_TRUNCATE_AGGREGATES', False))
