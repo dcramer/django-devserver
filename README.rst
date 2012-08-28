@@ -117,6 +117,11 @@ Outputs queries as they happen to the terminal, including time taken.
 Disable SQL query truncation (used in SQLRealTimeModule) with the ``DEVSERVER_TRUNCATE_SQL`` setting::
   
 	DEVSERVER_TRUNCATE_SQL = False
+Filter SQL queries with the ``DEVSERVER_FILTER_SQL`` setting::
+  
+	DEVSERVER_FILTER_SQL = (
+		re.compile('djkombu_\w+'),  # Filter all queries related to Celery
+	)
 
 devserver.modules.sql.SQLSummaryModule
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
