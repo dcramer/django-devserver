@@ -61,10 +61,14 @@ class DatabaseStatTracker(DatabaseStatTracker):
         formatted_sql = sql % (params if isinstance(params, dict) else tuple(params))
         if self.logger:
             message = formatted_sql
-            if settings.DEVSERVER_TRUNCATE_SQL:
-                message = truncate_sql(message, aggregates=settings.DEVSERVER_TRUNCATE_AGGREGATES)
-            message = sqlparse.format(message, reindent=True, keyword_case='upper')
-            self.logger.debug(message)
+            if settings.DEVSERVER_FILTER_SQL:
+                if any(filter_.search(message) for filter_ in settings.DEVSERVER_FILTER_SQL):
+                    message = None
+            if message is not None:
+                if settings.DEVSERVER_TRUNCATE_SQL:
+                    message = truncate_sql(message, aggregates=settings.DEVSERVER_TRUNCATE_AGGREGATES)
+                message = sqlparse.format(message, reindent=True, keyword_case='upper')
+                self.logger.debug(message)
 
         start = datetime.now()
 
