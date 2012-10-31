@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError, handle_default_options
-from django.core.servers.basehttp import AdminMediaHandler, WSGIServerException, \
-                                         WSGIServer
+from django.core.servers.basehttp import WSGIServerException, WSGIServer
 from django.core.handlers.wsgi import WSGIHandler
 
 import os
@@ -162,8 +161,6 @@ class Command(BaseCommand):
             if 'django.contrib.staticfiles' in settings.INSTALLED_APPS and use_static_files:
                 from django.contrib.staticfiles.handlers import StaticFilesHandler
                 app = StaticFilesHandler(app)
-            else:
-                app = AdminMediaHandler(app, admin_media_path)
 
             if options['use_dozer']:
                 from dozer import Dozer
