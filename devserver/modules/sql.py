@@ -58,18 +58,6 @@ class DatabaseStatTracker(DatabaseStatTracker):
     logger = None
 
     def execute(self, sql, params=()):
-        formatted_sql = sql % (params if isinstance(params, dict) else tuple(params))
-        if self.logger:
-            message = formatted_sql
-            if settings.DEVSERVER_FILTER_SQL:
-                if any(filter_.search(message) for filter_ in settings.DEVSERVER_FILTER_SQL):
-                    message = None
-            if message is not None:
-                if settings.DEVSERVER_TRUNCATE_SQL:
-                    message = truncate_sql(message, aggregates=settings.DEVSERVER_TRUNCATE_AGGREGATES)
-                message = sqlparse.format(message, reindent=True, keyword_case='upper')
-                self.logger.debug(message)
-
         start = datetime.now()
 
         try:
@@ -78,10 +66,26 @@ class DatabaseStatTracker(DatabaseStatTracker):
             stop = datetime.now()
             duration = ms_from_timedelta(stop - start)
 
-            if self.logger and (not settings.DEVSERVER_SQL_MIN_DURATION
-                    or duration > settings.DEVSERVER_SQL_MIN_DURATION):
-                if self.cursor.rowcount >= 0:
-                    self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration)
+            formatted_sql = self.db.ops.last_executed_query(self.cursor, sql, params)
+
+            if self.logger:
+                message = formatted_sql
+                if settings.DEVSERVER_FILTER_SQL:
+                    if any(filter_.search(message) for filter_ in settings.DEVSERVER_FILTER_SQL):
+                        message = None
+                if message is not None:
+                    if settings.DEVSERVER_TRUNCATE_SQL:
+                        message = truncate_sql(message, aggregates=settings.DEVSERVER_TRUNCATE_AGGREGATES)
+                    message = sqlparse.format(message, reindent=True, keyword_case='upper')
+                    self.logger.debug(message)
+
+                if ((not settings.DEVSERVER_SQL_MIN_DURATION
+                     or duration > settings.DEVSERVER_SQL_MIN_DURATION)
+                    and self.cursor.rowcount >= 0):
+
+                    self.logger.debug('Found %s matching rows',
+                                      self.cursor.rowcount,
+                                      duration=duration)
 
             if not (debug_toolbar or settings.DEBUG):
                 self.db.queries.append({
