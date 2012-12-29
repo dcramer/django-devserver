@@ -26,6 +26,7 @@ def run(addr, port, wsgi_handler, mixin=None):
     else:
         new = WSGIServer
     server_address = (addr, port)
+    new.request_queue_size = 10
     httpd = new(server_address, SlimWSGIRequestHandler)
     httpd.set_app(wsgi_handler)
     httpd.serve_forever()
