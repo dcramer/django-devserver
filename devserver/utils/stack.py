@@ -1,5 +1,8 @@
 import django
-import SocketServer
+try:
+    import SocketServer
+except ImportError:
+    import socketserver as SocketServer
 import os.path
 
 from django.conf import settings
