@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError, handle_default_options
 from django.core.servers.basehttp import WSGIServerException, WSGIServer
@@ -7,7 +9,10 @@ import os
 import sys
 import django
 import imp
-import SocketServer
+try:
+    import SocketServer
+except ImportError:
+    import socketserver as SocketServer
 from optparse import make_option
 
 from devserver.handlers import DevServerHandler
@@ -15,7 +20,7 @@ from devserver.utils.http import SlimWSGIRequestHandler
 
 
 def null_technical_500_response(request, exc_type, exc_value, tb):
-    raise exc_type, exc_value, tb
+    raise exc_type(exc_value, tb)
 
 
 def run(addr, port, wsgi_handler, mixin=None):
@@ -99,8 +104,8 @@ class Command(BaseCommand):
         if use_werkzeug:
             try:
                 from werkzeug import run_simple, DebuggedApplication
-            except ImportError, e:
-                print >> sys.stderr, "WARNING: Unable to initialize werkzeug: %s" % e
+            except ImportError as e:
+                print("WARNING: Unable to initialize werkzeug: %s" % e, file=sys.stderr)
                 use_werkzeug = False
             else:
                 use_werkzeug = True
@@ -117,16 +122,16 @@ class Command(BaseCommand):
             from django.conf import settings
             from django.utils import translation
 
-            print "Validating models..."
+            print("Validating models...")
             self.validate(display_num_errors=True)
-            print "\nDjango version %s, using settings %r" % (django.get_version(), settings.SETTINGS_MODULE)
-            print "Running django-devserver %s" % (devserver.get_version(),)
+            print("\nDjango version %s, using settings %r" % (django.get_version(), settings.SETTINGS_MODULE))
+            print("Running django-devserver %s" % (devserver.get_version(),))
             if use_werkzeug:
                 server_type = 'werkzeug'
             else:
                 server_type = 'django'
-            print "%s %s server is running at http://%s:%s/" % (options['use_forked'] and 'Forked' or 'Threaded', server_type, addr, port)
-            print "Quit the server with %s." % quit_command
+            print("%s %s server is running at http://%s:%s/" % (options['use_forked'] and 'Forked' or 'Threaded', server_type, addr, port))
+            print("Quit the server with %s." % quit_command)
 
             # django.core.management.base forces the locale to en-us. We should
             # set it up correctly for the first request (particularly important
@@ -139,7 +144,7 @@ class Command(BaseCommand):
                 app = DevServerHandler()
 
             if wsgi_app:
-                print "Using WSGI application %r" % wsgi_app
+                print("Using WSGI application %r" % wsgi_app)
                 if os.path.exists(os.path.abspath(wsgi_app)):
                     # load from file
                     app = imp.load_source('wsgi_app', os.path.abspath(wsgi_app)).application
@@ -182,7 +187,7 @@ class Command(BaseCommand):
                         use_reloader=False, use_debugger=True)
                 else:
                     run(addr, int(port), app, mixin)
-            except WSGIServerException, e:
+            except WSGIServerException as e:
                 # Use helpful error messages instead of ugly tracebacks.
                 ERRORS = {
                     13: "You don't have permission to access that port.",
@@ -198,7 +203,7 @@ class Command(BaseCommand):
                 os._exit(1)
             except KeyboardInterrupt:
                 if shutdown_message:
-                    print shutdown_message
+                    print(shutdown_message)
                 sys.exit(0)
 
         # werkzeug does its own autoreload stuff
