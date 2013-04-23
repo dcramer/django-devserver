@@ -125,15 +125,20 @@ else:
             self.follow = follow
 
         def __call__(self, func):
-            def profiled_func(request, *args, **kwargs):
+            def profiled_func(*args, **kwargs):
+                request = args[0]
+                if hasattr(request, 'request'):
+                    # We're decorating a Django class-based-view and the first argument is actually self:
+                    request = args[1]
+
                 try:
                     request.devserver_profiler.add_function(func)
                     request.devserver_profiler_run = True
                     for f in self.follow:
                         request.devserver_profiler.add_function(f)
                     request.devserver_profiler.enable_by_count()
-                    retval = func(request, *args, **kwargs)
+                    return func(*args, **kwargs)
                 finally:
                     request.devserver_profiler.disable_by_count()
-                return retval
+
             return functools.wraps(func)(profiled_func)
