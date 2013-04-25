@@ -23,6 +23,11 @@ class SlimWSGIRequestHandler(WSGIRequestHandler):
         self._start_request = datetime.now()
         return WSGIRequestHandler.handle(self, *args, **kwargs)
 
+    def get_environ(self):
+        env = super(SlimWSGIRequestHandler, self).get_environ()
+        env['REMOTE_PORT'] = self.client_address[-1]
+        return env
+
     def log_message(self, format, *args):
         duration = datetime.now() - self._start_request
 
