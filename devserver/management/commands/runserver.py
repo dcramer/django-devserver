@@ -83,7 +83,7 @@ class Command(BaseCommand):
             port = getattr(settings, 'DEVSERVER_DEFAULT_PORT', '8000')
             addrport = '%s:%s' % (addr, port)
 
-        return super(Command, self).handle(addport=addrport, *args, **options)
+        return super(Command, self).handle(addrport=addrport, *args, **options)
 
     def get_handler(self, *args, **options):
         if int(options['verbosity']) < 1:
