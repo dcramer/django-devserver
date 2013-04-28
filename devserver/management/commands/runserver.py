@@ -79,7 +79,7 @@ class Command(BaseCommand):
             raise CommandError('Usage is runserver %s' % self.args)
 
         if not addrport:
-            addr = getattr(settings, 'DEVSERVER_DEFAULT_ADDR', '')
+            addr = getattr(settings, 'DEVSERVER_DEFAULT_ADDR', '127.0.0.1')
             port = getattr(settings, 'DEVSERVER_DEFAULT_PORT', '8000')
             addrport = '%s:%s' % (addr, port)
 
