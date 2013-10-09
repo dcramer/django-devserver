@@ -13,6 +13,7 @@ except ImportError:
     connections = {'default': connection}
 
 from django.db.backends import util
+from django.conf import settings as django_settings
 #from django.template import Node
 
 from devserver.modules import DevServerModule
@@ -83,7 +84,7 @@ class DatabaseStatTracker(DatabaseStatTracker):
                 if self.cursor.rowcount >= 0:
                     self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration)
 
-            if not (debug_toolbar or settings.DEBUG):
+            if not (debug_toolbar or django_settings.DEBUG):
                 self.db.queries.append({
                     'sql': formatted_sql,
                     'time': duration,
