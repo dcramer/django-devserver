@@ -93,6 +93,9 @@ DEVSERVER_MODULES = []
 DEVSERVER_IGNORED_PREFIXES = ['/media', '/uploads']
   A list of prefixes to surpress and skip process on. By default, ``ADMIN_MEDIA_PREFIX``, ``MEDIA_URL`` and ``STATIC_URL`` (for Django >= 1.3) will be ignored (assuming ``MEDIA_URL`` and ``STATIC_URL`` is relative)::
 
+DEVSERVER_LOG_HANDLER
+  A name of logging handler. Default is None, if None logs are written to stdout
+
 
 -------
 Modules

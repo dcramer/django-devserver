@@ -7,8 +7,16 @@ from django.utils.encoding import smart_str
 from django.core.management.color import color_style
 from django.utils import termcolors
 
+from devserver import settings
+
 
 _bash_colors = re.compile(r'\x1b\[[^m]*m')
+
+
+if settings.DEVSERVER_LOG_HANDLER:
+    logger = logging.getLogger(settings.DEVSERVER_LOG_HANDLER)
+else:
+    logger = None
 
 
 def strip_bash_colors(string):
@@ -68,7 +76,10 @@ class GenericLogger(object):
 
         message = '%s %s' % (tpl, '\n'.join(new_message))
 
-        sys.stdout.write('    ' + message + '\n')
+        if logger is None:
+            sys.stdout.write('    ' + message + '\n')
+        else:
+            logger.log(level, message)
 
     warn = lambda x, *a, **k: x.log(level=logging.WARN, *a, **k)
     info = lambda x, *a, **k: x.log(level=logging.INFO, *a, **k)
