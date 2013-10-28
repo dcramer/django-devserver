@@ -45,6 +45,16 @@ class ThreadedTestServerThread(threading.Thread):
         self.error = None
         super(ThreadedTestServerThread, self).__init__()
 
+    def _should_loaddata(self):
+        # Must do database stuff in this new thread if database in memory.
+        if not hasattr(self, 'fixtures'):
+            return False
+        if settings.DATABASE_ENGINE != 'sqlite3':
+            return False
+        if settings.TEST_DATABASE_NAME and settings.TEST_DATABASE_NAME != ':memory:':
+            return False
+        return True
+
     def run(self):
         """Sets up test server and database and loops over handling http requests."""
         # AdminMediaHandler was removed in Django 1.5; use it only when available.
@@ -70,14 +80,10 @@ class ThreadedTestServerThread(threading.Thread):
             self.started.set()
             return
 
-        # Must do database stuff in this new thread if database in memory.
-        if settings.DATABASE_ENGINE == 'sqlite3' \
-            and (not settings.TEST_DATABASE_NAME or settings.TEST_DATABASE_NAME == ':memory:'):
-            # Import the fixture data into the test database.
-            if hasattr(self, 'fixtures'):
-                # We have to use this slightly awkward syntax due to the fact
-                # that we're using *args and **kwargs together.
-                call_command('loaddata', *self.fixtures, **{'verbosity': 0})
+        if self._should_loaddata():
+            # We have to use this slightly awkward syntax due to the fact
+            # that we're using *args and **kwargs together.
+            call_command('loaddata', *self.fixtures, **{'verbosity': 0})
 
         # Loop until we get a stop event.
         while not self._stopevent.isSet():
