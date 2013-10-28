@@ -1,17 +1,25 @@
 from django.conf import settings
 from django.core.management.commands.runserver import Command as BaseCommand
 from django.core.management.base import CommandError, handle_default_options
-from django.core.servers.basehttp import WSGIServerException, WSGIServer
+from django.core.servers.basehttp import WSGIServer
 from django.core.handlers.wsgi import WSGIHandler
 
 import os
 import sys
 import imp
+import errno
+import socket
 import SocketServer
 from optparse import make_option
 
 from devserver.handlers import DevServerHandler
 from devserver.utils.http import SlimWSGIRequestHandler
+
+try:
+    from django.core.servers.basehttp import (WSGIServerException as
+                                              wsgi_server_exc_cls)
+except ImportError:  # Django 1.6
+    wsgi_server_exc_cls = socket.error
 
 
 STATICFILES_APPS = ('django.contrib.staticfiles', 'staticfiles')
@@ -189,15 +197,23 @@ class Command(BaseCommand):
             else:
                 run(self.addr, int(self.port), app, mixin, ipv6=options['use_ipv6'])
 
-        except WSGIServerException, e:
+        except wsgi_server_exc_cls, e:
             # Use helpful error messages instead of ugly tracebacks.
             ERRORS = {
-                13: "You don't have permission to access that port.",
-                98: "That port is already in use.",
-                99: "That IP address can't be assigned-to.",
+                errno.EACCES: "You don't have permission to access that port.",
+                errno.EADDRINUSE: "That port is already in use.",
+                errno.EADDRNOTAVAIL: "That IP address can't be assigned-to.",
             }
+            if not isinstance(e, socket.error):  # Django < 1.6
+                ERRORS[13] = ERRORS.pop(errno.EACCES)
+                ERRORS[98] = ERRORS.pop(errno.EADDRINUSE)
+                ERRORS[99] = ERRORS.pop(errno.EADDRNOTAVAIL)
+
             try:
-                error_text = ERRORS[e.args[0].args[0]]
+                if not isinstance(e, socket.error):  # Django < 1.6
+                    error_text = ERRORS[e.args[0].args[0]]
+                else:
+                    error_text = ERRORS[e.errno]
             except (AttributeError, KeyError):
                 error_text = str(e)
             sys.stderr.write(self.style.ERROR("Error: %s" % error_text) + '\n')
