@@ -156,6 +156,7 @@ When using the decorator, we recommend that rather than import the decoration di
 	        raise ImportError
 	    from devserver.modules.profile import devserver_profile
 	except ImportError:
+	    from functools import wraps
 	    class devserver_profile(object):
 	        def __init__(self, *args, **kwargs):
 	            pass
