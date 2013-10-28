@@ -81,7 +81,7 @@ class DatabaseStatTracker(DatabaseStatTracker):
 
             if self.logger and (not settings.DEVSERVER_SQL_MIN_DURATION
                     or duration > settings.DEVSERVER_SQL_MIN_DURATION):
-                if self.cursor.rowcount >= 0:
+                if self.cursor.rowcount >= 0 and message is not None:
                     self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration)
 
             if not (debug_toolbar or django_settings.DEBUG):
