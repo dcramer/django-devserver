@@ -5,7 +5,7 @@ import threading
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIHandler
 from django.core.management import call_command
-from django.core.servers.basehttp import WSGIServer, AdminMediaHandler
+from django.core.servers.basehttp import WSGIServer
 
 from devserver.utils.http import SlimWSGIRequestHandler
 
@@ -47,8 +47,15 @@ class ThreadedTestServerThread(threading.Thread):
 
     def run(self):
         """Sets up test server and database and loops over handling http requests."""
+        # AdminMediaHandler was removed in Django 1.5; use it only when available.
+        handler = WSGIHandler()
         try:
-            handler = AdminMediaHandler(WSGIHandler())
+            from django.core.servers.basehttp import AdminMediaHandler
+            handler = AdminMediaHandler(handler)
+        except ImportError:
+            pass
+
+        try:
             server_address = (self.address, self.port)
 
             class new(SocketServer.ThreadingMixIn, StoppableWSGIServer):
