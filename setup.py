@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 
-setup(name='django-devserver',
+setup(
+    name='django-devserver',
     version=".".join(map(str, __import__("devserver").__version__)),
     description='Drop-in replacement for Django\'s runserver',
     author='David Cramer',
