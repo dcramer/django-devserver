@@ -91,7 +91,7 @@ DEVSERVER_MODULES = []
   A list of devserver modules to load.
 
 DEVSERVER_IGNORED_PREFIXES = ['/media', '/uploads']
-  A list of prefixes to surpress and skip process on. By default, ``ADMIN_MEDIA_PREFIX``, ``MEDIA_URL`` and ``STATIC_URL`` (for Django >= 1.3) will be ignored (assuming ``MEDIA_URL`` and ``STATIC_URL`` is relative)::
+  A list of prefixes to surpress and skip process on. By default, ``ADMIN_MEDIA_PREFIX``, ``MEDIA_URL`` and ``STATIC_URL`` (for Django >= 1.3) will be ignored (assuming ``MEDIA_URL`` and ``STATIC_URL`` is relative)
 
 
 -------
@@ -119,6 +119,7 @@ Outputs queries as they happen to the terminal, including time taken.
 Disable SQL query truncation (used in SQLRealTimeModule) with the ``DEVSERVER_TRUNCATE_SQL`` setting::
   
 	DEVSERVER_TRUNCATE_SQL = False
+
 Filter SQL queries with the ``DEVSERVER_FILTER_SQL`` setting::
   
 	DEVSERVER_FILTER_SQL = (
