@@ -49,13 +49,10 @@ try:
     debug_toolbar = True
 except ImportError:
     debug_toolbar = False
-    CursorWrapper = util.CursorWrapper
-    DatabaseStatTracker = util.CursorDebugWrapper
+    DatabaseStatTracker = util.CursorWrapper
 
 
 
-class CursorWrapper(CursorWrapper):
-    pass
         
 
 class DatabaseStatTracker(CursorWrapper):
