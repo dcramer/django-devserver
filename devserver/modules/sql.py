@@ -55,7 +55,7 @@ except ImportError:
 
         
 
-class DatabaseStatTracker(CursorWrapper):
+class DatabaseStatTracker(DatabaseStatTracker):
     """
     Replacement for CursorDebugWrapper which outputs information as it happens.
     """
