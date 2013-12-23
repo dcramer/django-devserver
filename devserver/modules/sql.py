@@ -49,7 +49,11 @@ try:
     debug_toolbar = True
 except ImportError:
     debug_toolbar = False
-    DatabaseStatTracker = util.CursorWrapper
+    import django
+    if django.VERSION[1] >= 6:
+        DatabaseStatTracker = util.CursorWrapper
+    else:
+        DatabaseStatTracker = util.CursorDebugWrapper
 
 
 
