@@ -57,9 +57,6 @@ except ImportError:
         DatabaseStatTracker = util.CursorDebugWrapper
 
 
-
-        
-
 class DatabaseStatTracker(DatabaseStatTracker):
     """
     Replacement for CursorDebugWrapper which outputs information as it happens.
