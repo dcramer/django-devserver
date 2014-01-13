@@ -49,7 +49,12 @@ try:
     debug_toolbar = True
 except ImportError:
     debug_toolbar = False
-    DatabaseStatTracker = util.CursorDebugWrapper
+    import django
+    version = float('.'.join([str(x) for x in django.VERSION[:2]]))
+    if version >= 1.6:
+        DatabaseStatTracker = util.CursorWrapper
+    else:
+        DatabaseStatTracker = util.CursorDebugWrapper
 
 
 class DatabaseStatTracker(DatabaseStatTracker):
