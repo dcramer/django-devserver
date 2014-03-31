@@ -1,5 +1,4 @@
 import logging
-import sys
 import re
 import datetime
 
@@ -15,12 +14,21 @@ def strip_bash_colors(string):
     return _bash_colors.sub('', string)
 
 
-class GenericLogger(object):
-    def __init__(self, module):
-        self.module = module
+class GenericLogger(logging.LoggerAdapter):
+
+    def __init__(self, logger, extra):
+        if extra:
+            self.module = extra.get('module', '')
+
+        if self.module:
+            self.logger = logging.getLogger(self.module.logger_name)
+        else:
+            self.logger = logger
+
+        self.extra = extra
         self.style = color_style()
 
-    def log(self, message, *args, **kwargs):
+    def process(self, message, kwargs):
         id = kwargs.pop('id', None)
         duration = kwargs.pop('duration', None)
         level = kwargs.pop('level', logging.INFO)
@@ -32,9 +40,6 @@ class GenericLogger(object):
             tpl_bits.append(self.style.SQL_FIELD('[%s]' % self.module.logger_name))
         if duration:
             tpl_bits.append(self.style.SQL_KEYWORD('(%dms)' % duration))
-
-        if args:
-            message = message % args
 
         message = smart_str(message)
 
@@ -66,13 +71,4 @@ class GenericLogger(object):
                 new_message.append('%s%s' % (indent, line))
             first = False
 
-        message = '%s %s' % (tpl, '\n'.join(new_message))
-
-        sys.stdout.write('    ' + message + '\n')
-
-    warn = lambda x, *a, **k: x.log(level=logging.WARN, *a, **k)
-    info = lambda x, *a, **k: x.log(level=logging.INFO, *a, **k)
-    debug = lambda x, *a, **k: x.log(level=logging.DEBUG, *a, **k)
-    error = lambda x, *a, **k: x.log(level=logging.ERROR, *a, **k)
-    critical = lambda x, *a, **k: x.log(level=logging.CRITICAL, *a, **k)
-    fatal = lambda x, *a, **k: x.log(level=logging.FATAL, *a, **k)
+        return '    %s %s' % (tpl, '\n'.join(new_message)), kwargs

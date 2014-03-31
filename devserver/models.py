@@ -30,7 +30,7 @@ def load_modules():
             raise exceptions.ImproperlyConfigured, 'Error importing devserver module "%s" does not define a "%s" class' % (name, class_name)
 
         try:
-            instance = cls(GenericLogger(cls))
+            instance = cls(GenericLogger(None, {'module': cls}))
         except:
             raise  # Bubble up problem loading panel
 
