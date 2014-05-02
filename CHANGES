@@ -1,3 +1,7 @@
+0.8.0
+
+* Support for Django 1.6
+
 0.3.1
 
 * Fixed a bug when --wsgi-app was not provided.
