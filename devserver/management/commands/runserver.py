@@ -67,7 +67,15 @@ class Command(BaseCommand):
     args = '[optional port number, or ipaddr:port]'
 
     # Validation is called explicitly each time the server is reloaded.
-    requires_model_validation = False
+    def __init__(self):
+        # `requires_model_validation` is deprecated in favor of
+        # `requires_system_checks`. If both options are present, an error is
+        # raised. BaseCommand sets requires_system_checks in >= Django 1.7.
+        if hasattr(self, 'requires_system_checks'):
+            requires_system_checks = False
+        else:
+            requires_model_validation = False  # Django < 1.7
+        super(Command, self).__init__()
 
     def run_from_argv(self, argv):
         parser = self.create_parser(argv[0], argv[1])
