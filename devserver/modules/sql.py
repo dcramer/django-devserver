@@ -106,7 +106,7 @@ class DatabaseStatTracker(DatabaseStatTracker):
             if self.logger:
                 message = sqlparse.format(sql, reindent=True, keyword_case='upper')
 
-                message = 'Executed %s times\n%s' % message
+                message = 'Executed %s times\n' % message
 
                 self.logger.debug(message, duration=duration)
                 self.logger.debug('Found %s matching rows', self.cursor.rowcount, duration=duration, id='query')
