@@ -10,6 +10,7 @@ import imp
 import errno
 import socket
 import SocketServer
+import django
 from optparse import make_option
 
 from devserver.handlers import DevServerHandler
@@ -67,7 +68,11 @@ class Command(BaseCommand):
     args = '[optional port number, or ipaddr:port]'
 
     # Validation is called explicitly each time the server is reloaded.
-    requires_model_validation = False
+    version = float('.'.join([str(x) for x in django.VERSION[:2]]))
+    if version >= 1.7:
+        requires_system_checks = False
+    else:
+        requires_models_validation = False
 
     def run_from_argv(self, argv):
         parser = self.create_parser(argv[0], argv[1])
