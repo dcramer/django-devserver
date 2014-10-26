@@ -34,6 +34,11 @@ You will need to include ``devserver`` in your ``INSTALLED_APPS``::
 	    'devserver',            
 	)
 
+If you're using ``django.contrib.staticfiles`` or any other apps with management
+command ``runserver``, make sure to put ``devserver`` *above* any of them (or *below*,
+for ``Django<1.7``). Otherwise ``devserver`` will raise exception to ensure it is set up
+properly.
+
 -----
 Usage
 -----
