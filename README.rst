@@ -26,6 +26,7 @@ django-devserver has some optional dependancies, which we highly recommend insta
 * ``pip install werkzeug`` -- interactive debugger
 * ``pip install guppy`` -- tracks memory usage (required for MemoryUseModule)
 * ``pip install line_profiler`` -- does line-by-line profiling (required for LineProfilerModule)
+* ``pip install Dozer`` -- tracks memory leaks and inspects logged messages
 
 You will need to include ``devserver`` in your ``INSTALLED_APPS``::
 
