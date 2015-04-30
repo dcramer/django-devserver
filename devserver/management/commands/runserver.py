@@ -203,7 +203,7 @@ class Command(BaseCommand):
                     self.addr, int(self.port), DebuggedApplication(app, True),
                     use_reloader=False, use_debugger=True)
             else:
-                run(self.addr, int(self.port), app, mixin, ipv6=options['use_ipv6'])
+                run(self.addr, int(self.port), app, mixin, ipv6=self.use_ipv6)
 
         except wsgi_server_exc_cls, e:
             # Use helpful error messages instead of ugly tracebacks.
