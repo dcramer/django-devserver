@@ -16,7 +16,7 @@ class StatCollection(object):
         super(StatCollection, self).__init__(*args, **kwargs)
         self.reset()
 
-    def run(self, func, key, logger, *args, **kwargs):
+    def run(self, func, key, logger, args, kwargs):
         """Profile a function and store its information."""
 
         start_time = datetime.now()
@@ -96,7 +96,7 @@ def track(func, key, logger):
     def wrapped(*args, **kwargs):
         global stats
 
-        return stats.run(func, key, logger, *args, **kwargs)
+        return stats.run(func, key, logger, args=args, kwargs=kwargs)
     wrapped.__doc__ = func.__doc__
     wrapped.__name__ = func.__name__
     return wrapped
