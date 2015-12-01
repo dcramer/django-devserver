@@ -12,7 +12,7 @@ except ImportError:
     from django.db import connection
     connections = {'default': connection}
 
-from django.db.backends import util
+from django.db.backends import utils
 from django.conf import settings as django_settings
 #from django.template import Node
 
@@ -52,9 +52,9 @@ except ImportError:
     import django
     version = float('.'.join([str(x) for x in django.VERSION[:2]]))
     if version >= 1.6:
-        DatabaseStatTracker = util.CursorWrapper
+        DatabaseStatTracker = utils.CursorWrapper
     else:
-        DatabaseStatTracker = util.CursorDebugWrapper
+        DatabaseStatTracker = utils.CursorDebugWrapper
 
 
 class DatabaseStatTracker(DatabaseStatTracker):
@@ -126,14 +126,14 @@ class SQLRealTimeModule(DevServerModule):
     logger_name = 'sql'
 
     def process_init(self, request):
-        if not issubclass(util.CursorDebugWrapper, DatabaseStatTracker):
-            self.old_cursor = util.CursorDebugWrapper
-            util.CursorDebugWrapper = DatabaseStatTracker
+        if not issubclass(utils.CursorDebugWrapper, DatabaseStatTracker):
+            self.old_cursor = utils.CursorDebugWrapper
+            utils.CursorDebugWrapper = DatabaseStatTracker
         DatabaseStatTracker.logger = self.logger
 
     def process_complete(self, request):
-        if issubclass(util.CursorDebugWrapper, DatabaseStatTracker):
-            util.CursorDebugWrapper = self.old_cursor
+        if issubclass(utils.CursorDebugWrapper, DatabaseStatTracker):
+            utils.CursorDebugWrapper = self.old_cursor
 
 
 class SQLSummaryModule(DevServerModule):
