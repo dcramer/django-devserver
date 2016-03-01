@@ -4,6 +4,7 @@ except ImportError:
     from django.utils._threading_local import local
 
 from datetime import datetime
+from django.template.defaultfilters import truncatechars
 
 from devserver.utils.time import ms_from_timedelta
 
@@ -51,7 +52,11 @@ class StatCollection(object):
             row['hits'] += 1
 
         if logger:
-            logger.debug('%s("%s") %s (%s)', func.__name__, args[0], 'Miss' if value is None else 'Hit', row['hits'], duration=this_time)
+            # Combine args and kwargs in a readable string.
+            formatted_args = ', '.join(repr(arg) for arg in args)
+            formatted_args += ', '.join(['{}={}'.format(name, truncatechars(repr(val), 150)) for name, val in kwargs.items()])
+
+            logger.debug('%s(%s) %s (%s)', func.__name__, formatted_args, 'Miss' if value is None else 'Hit', row['hits'], duration=this_time)
 
         return value
 
