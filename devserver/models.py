@@ -3,6 +3,7 @@ from django.core import exceptions
 from django.core.exceptions import ImproperlyConfigured
 
 from devserver.logger import GenericLogger
+import logging
 
 
 MODULES = []
@@ -27,10 +28,10 @@ def check_installed_apps_configuration():
     else:
         latest_app_overrides = django.VERSION < (1, 7)
         if devserver_index < staticfiles_index and latest_app_overrides:
-            raise ImproperlyConfigured(
+            logging.error(
                 'Put "devserver" below "django.contrib.staticfiles" in INSTALLED_APPS to make it work')
         elif devserver_index > staticfiles_index and not latest_app_overrides:
-            raise ImproperlyConfigured(
+            logging.error(
                 'Put "devserver" above "django.contrib.staticfiles" in INSTALLED_APPS to make it work')
 
 
