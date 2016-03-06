@@ -43,7 +43,7 @@ class CacheSummaryModule(DevServerModule):
             ), duration=stats.get_total_time('cache'))
 
         # set our attributes back to their defaults
-        for k, v in self.old.iteritems():
+        for k, v in self.old.items():
             setattr(cache, k, v)
 
 

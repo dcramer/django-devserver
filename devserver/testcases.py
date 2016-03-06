@@ -1,5 +1,8 @@
 import socket
-import SocketServer
+try:
+    import SocketServer
+except ImportError:
+    import socketserver as SocketServer
 import threading
 
 from django.conf import settings
@@ -75,7 +78,7 @@ class ThreadedTestServerThread(threading.Thread):
             httpd = new(server_address, SlimWSGIRequestHandler)
             httpd.set_app(handler)
             self.started.set()
-        except wsgi_server_exc_cls, e:
+        except wsgi_server_exc_cls as e:
             self.error = e
             self.started.set()
             return
