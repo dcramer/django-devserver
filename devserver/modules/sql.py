@@ -67,7 +67,7 @@ class DatabaseStatTracker(DatabaseStatTracker):
     logger = None
 
     def execute(self, sql, params=()):
-        formatted_sql = sql % (params if isinstance(params, dict) else tuple(params))
+        formatted_sql = params and sql % (params if isinstance(params, dict) else tuple(params)) or sql
         if self.logger:
             message = formatted_sql
             if settings.DEVSERVER_FILTER_SQL:
