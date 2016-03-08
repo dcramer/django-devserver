@@ -20,7 +20,7 @@ To install the latest stable version::
 	pip install git+git://github.com/dcramer/django-devserver#egg=django-devserver
 
 
-django-devserver has some optional dependancies, which we highly recommend installing.
+django-devserver has some optional dependencies, which we highly recommend installing.
 
 * ``pip install sqlparse`` -- pretty SQL formatting
 * ``pip install werkzeug`` -- interactive debugger
@@ -55,7 +55,7 @@ Additional CLI Options
 ~~~~~~~~~~~~~~~~~~~~~~
 
 --werkzeug
-  Tells Django to use the Werkzeug interactive debugger, instead of it's own.
+  Tells Django to use the Werkzeug interactive debugger, instead of its own.
 
 --forked
   Use a forking (multi-process) web server instead of threaded.
@@ -96,7 +96,7 @@ DEVSERVER_MODULES = []
   A list of devserver modules to load.
 
 DEVSERVER_IGNORED_PREFIXES = ['/media', '/uploads']
-  A list of prefixes to surpress and skip process on. By default, ``ADMIN_MEDIA_PREFIX``, ``MEDIA_URL`` and ``STATIC_URL`` (for Django >= 1.3) will be ignored (assuming ``MEDIA_URL`` and ``STATIC_URL`` is relative)
+  A list of prefixes to suppress and skip process on. By default, ``ADMIN_MEDIA_PREFIX``, ``MEDIA_URL`` and ``STATIC_URL`` (for Django >= 1.3) will be ignored (assuming ``MEDIA_URL`` and ``STATIC_URL`` is relative)
 
 
 -------
@@ -171,7 +171,7 @@ When using the decorator, we recommend that rather than import the decoration di
 	                return func(*args, **kwargs)
 	            return wraps(func)(nothing)
 
-By importing the decoration using this method, devserver_profile will be a pass through decoration if you aren't using devserver (eg in production)
+By importing the decoration using this method, devserver_profile will be a pass through decoration if you aren't using devserver (e.g. in production)
 
 
 devserver.modules.cache.CacheSummaryModule
