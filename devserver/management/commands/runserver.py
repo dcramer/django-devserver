@@ -145,6 +145,8 @@ class Command(BaseCommand):
                 self.stderr.write("WARNING: Unable to initialize werkzeug: %s\n" % e)
                 use_werkzeug = False
             else:
+                from devserver.utils.http_werkzeug import (
+                    SlimWSGIRequestHandler as WerkzeugSlimWSGIRequestHandler)
                 from django.views import debug
                 debug.technical_500_response = null_technical_500_response
 
@@ -201,7 +203,8 @@ class Command(BaseCommand):
             if use_werkzeug:
                 run_simple(
                     self.addr, int(self.port), DebuggedApplication(app, True),
-                    use_reloader=False, use_debugger=True)
+                    use_reloader=False, use_debugger=True,
+                    request_handler=WerkzeugSlimWSGIRequestHandler)
             else:
                 run(self.addr, int(self.port), app, mixin, ipv6=self.use_ipv6)
 
