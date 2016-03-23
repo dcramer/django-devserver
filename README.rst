@@ -22,10 +22,10 @@ To install the latest stable version::
 
 django-devserver has some optional dependancies, which we highly recommend installing.
 
-* ``pip install sqlparse`` -- pretty SQL formatting
-* ``pip install werkzeug`` -- interactive debugger
-* ``pip install guppy`` -- tracks memory usage (required for MemoryUseModule)
-* ``pip install line_profiler`` -- does line-by-line profiling (required for LineProfilerModule)
+* ``pip install sqlparse`` -- pretty SQL formatting (`pypi <http://pypi.python.org/pypi/sqlparse/>`_)
+* ``pip install werkzeug`` -- interactive debugger (`pocoo <http://werkzeug.pocoo.org/docs/>`_)
+* ``pip install guppy`` -- tracks memory usage (required for MemoryUseModule) (`sourceforge <http://guppy-pe.sourceforge.net/>`_)
+* ``pip install line_profiler`` -- does line-by-line profiling (required for LineProfilerModule) (`pythonhosted <http://pythonhosted.org/line_profiler/>`_)
 
 You will need to include ``devserver`` in your ``INSTALLED_APPS``::
 
