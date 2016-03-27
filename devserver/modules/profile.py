@@ -129,7 +129,7 @@ else:
                 request = args[0]
                 if hasattr(request, 'request'):
                     # We're decorating a Django class-based-view and the first argument is actually self:
-                    request = args[1]
+                    request = request.request
 
                 try:
                     request.devserver_profiler.add_function(func)
