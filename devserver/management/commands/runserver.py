@@ -43,25 +43,44 @@ def run(addr, port, wsgi_handler, mixin=None, ipv6=False):
     httpd.serve_forever()
 
 
+ADDITIONAL_ARGUMENTS = {
+    '--werkzeug': dict(
+        action='store_true',
+        dest='use_werkzeug',
+        default=False,
+        help='Tells Django to use the Werkzeug interactive debugger.'),
+    '--forked': dict(
+        action='store_true',
+        dest='use_forked',
+        default=False,
+        help='Use forking instead of threading for multiple web requests.'),
+    '--dozer': dict(
+        action='store_true',
+        dest='use_dozer',
+        default=False,
+        help='Enable the Dozer memory debugging middleware.'),
+    '--wsgi-app': dict(
+        dest='wsgi_app',
+        default=None,
+        help='Load the specified WSGI app as the server endpoint.'),
+}
+
+if any(map(lambda app: app in settings.INSTALLED_APPS, STATICFILES_APPS)):
+    ADDITIONAL_ARGUMENTS.update({
+        '--nostatic': dict(
+            dest='use_static_files',
+            action='store_false',
+            default=True,
+            help='Tells Django to NOT automatically serve static files at STATIC_URL.')
+    })
+
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option(
-            '--werkzeug', action='store_true', dest='use_werkzeug', default=False,
-            help='Tells Django to use the Werkzeug interactive debugger.'),
-        make_option(
-            '--forked', action='store_true', dest='use_forked', default=False,
-            help='Use forking instead of threading for multiple web requests.'),
-        make_option(
-            '--dozer', action='store_true', dest='use_dozer', default=False,
-            help='Enable the Dozer memory debugging middleware.'),
-        make_option(
-            '--wsgi-app', dest='wsgi_app', default=None,
-            help='Load the specified WSGI app as the server endpoint.'),
-    )
-    if any(map(lambda app: app in settings.INSTALLED_APPS, STATICFILES_APPS)):
-        option_list += make_option(
-            '--nostatic', dest='use_static_files', action='store_false', default=True,
-            help='Tells Django to NOT automatically serve static files at STATIC_URL.'),
+    if BaseCommand.option_list:
+        # Handle Django < 1.8
+        option_list = BaseCommand.option_list + (
+            make_option(name, **kwargs)
+            for name, kwargs in ADDITIONAL_ARGUMENTS.items()
+        )
 
     help = "Starts a lightweight Web server for development which outputs additional debug information."
     args = '[optional port number, or ipaddr:port]'
@@ -72,10 +91,15 @@ class Command(BaseCommand):
         # `requires_system_checks`. If both options are present, an error is
         # raised. BaseCommand sets requires_system_checks in >= Django 1.7.
         if hasattr(self, 'requires_system_checks'):
-            requires_system_checks = False
+            self.requires_system_checks = False
         else:
-            requires_model_validation = False  # Django < 1.7
+            self.requires_model_validation = False  # Django < 1.7
         super(Command, self).__init__()
+
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        for name, kwargs in ADDITIONAL_ARGUMENTS.items():
+            parser.add_argument(name, **kwargs)
 
     def run_from_argv(self, argv):
         parser = self.create_parser(argv[0], argv[1])
@@ -85,12 +109,24 @@ class Command(BaseCommand):
         else:
             options = None
 
-        options, args = parser.parse_args(argv[2:], options)
+        if getattr(self, 'use_argparse', False):
+            options = parser.parse_args(argv[2:], options)
+            cmd_options = vars(options)
+            args = cmd_options.pop('args', ())
+        else:
+            options, args = parser.parse_args(argv[2:], options)
+            cmd_options = vars(options)
 
         handle_default_options(options)
         self.execute(*args, **options.__dict__)
 
-    def handle(self, addrport='', *args, **options):
+    def handle(self, *args, **options):
+        options.pop('addrport', None)
+        if args:
+            addrport, args = args[0], args[1:]
+        else:
+            addrport, args = '', args
+
         if args:
             raise CommandError('Usage is runserver %s' % self.args)
 
