@@ -47,3 +47,29 @@ def get_version():
     if __build__:
         base = '%s (%s)' % (base, __build__)
     return base
+
+
+def patch_get_commands():
+    # Make autoreload use the devserver's runserver command instead of the
+    # default one. This prevent crashing the devserver on a syntax error
+    import functools
+    import django.core.management
+
+    original = django.core.management.get_commands
+    if getattr(original, '_wrapped', False):
+        return
+
+    @functools.wraps(original)
+    def wrapper(*args, **kwargs):
+        commands = original(*args, **kwargs)
+        commands['runserver'] = 'devserver'
+        return commands
+    wrapper._wrapped = True
+
+    django.core.management.get_commands = wrapper
+
+
+import django
+major, minor = django.VERSION[:2]
+if major >= 1 and minor >= 8:
+    patch_get_commands()
