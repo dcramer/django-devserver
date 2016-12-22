@@ -14,6 +14,7 @@ from optparse import make_option
 
 from devserver.handlers import DevServerHandler
 from devserver.utils.http import SlimWSGIRequestHandler
+from django import VERSION as DJANGO_VERSION
 
 try:
     from django.core.servers.basehttp import (WSGIServerException as
@@ -44,24 +45,28 @@ def run(addr, port, wsgi_handler, mixin=None, ipv6=False):
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option(
-            '--werkzeug', action='store_true', dest='use_werkzeug', default=False,
-            help='Tells Django to use the Werkzeug interactive debugger.'),
-        make_option(
-            '--forked', action='store_true', dest='use_forked', default=False,
-            help='Use forking instead of threading for multiple web requests.'),
-        make_option(
-            '--dozer', action='store_true', dest='use_dozer', default=False,
-            help='Enable the Dozer memory debugging middleware.'),
-        make_option(
-            '--wsgi-app', dest='wsgi_app', default=None,
-            help='Load the specified WSGI app as the server endpoint.'),
-    )
-    if any(map(lambda app: app in settings.INSTALLED_APPS, STATICFILES_APPS)):
-        option_list += make_option(
-            '--nostatic', dest='use_static_files', action='store_false', default=True,
-            help='Tells Django to NOT automatically serve static files at STATIC_URL.'),
+
+    if DJANGO_VERSION < (1, 8):
+        # Legacy support for < Django 1.8
+        # See 'add_arguments' function below for >= Django 1.8
+        option_list = BaseCommand.option_list + (
+            make_option(
+                '--werkzeug', action='store_true', dest='use_werkzeug', default=False,
+                help='Tells Django to use the Werkzeug interactive debugger.'),
+            make_option(
+                '--forked', action='store_true', dest='use_forked', default=False,
+                help='Use forking instead of threading for multiple web requests.'),
+            make_option(
+                '--dozer', action='store_true', dest='use_dozer', default=False,
+                help='Enable the Dozer memory debugging middleware.'),
+            make_option(
+                '--wsgi-app', dest='wsgi_app', default=None,
+                help='Load the specified WSGI app as the server endpoint.'),
+        )
+        if any(map(lambda app: app in settings.INSTALLED_APPS, STATICFILES_APPS)):
+            option_list += make_option(
+                '--nostatic', dest='use_static_files', action='store_false', default=True,
+                help='Tells Django to NOT automatically serve static files at STATIC_URL.'),
 
     help = "Starts a lightweight Web server for development which outputs additional debug information."
     args = '[optional port number, or ipaddr:port]'
@@ -77,29 +82,34 @@ class Command(BaseCommand):
             requires_model_validation = False  # Django < 1.7
         super(Command, self).__init__()
 
-    def run_from_argv(self, argv):
-        parser = self.create_parser(argv[0], argv[1])
-        default_args = getattr(settings, 'DEVSERVER_ARGS', None)
-        if default_args:
-            options, args = parser.parse_args(default_args)
-        else:
-            options = None
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument(
+            '--werkzeug', action='store_true', dest='use_werkzeug', default=False,
+            help='Tells Django to use the Werkzeug interactive debugger.'),
+        parser.add_argument(
+            '--forked', action='store_true', dest='use_forked', default=False,
+            help='Use forking instead of threading for multiple web requests.')
+        parser.add_argument(
+            '--dozer', action='store_true', dest='use_dozer', default=False,
+            help='Enable the Dozer memory debugging middleware.')
+        parser.add_argument(
+            '--wsgi-app', dest='wsgi_app', default=None,
+            help='Load the specified WSGI app as the server endpoint.')
 
-        options, args = parser.parse_args(argv[2:], options)
+        if any(map(lambda app: app in settings.INSTALLED_APPS, STATICFILES_APPS)):
+            parser.add_argument(
+                '--nostatic', dest='use_static_files', action='store_false', default=True,
+                help='Tells Django to NOT automatically serve static files at STATIC_URL.'),
 
-        handle_default_options(options)
-        self.execute(*args, **options.__dict__)
-
-    def handle(self, addrport='', *args, **options):
-        if args:
-            raise CommandError('Usage is runserver %s' % self.args)
-
+    def handle(self, *args, **options):
+        addrport = options.get('addrport', '')
         if not addrport:
             addr = getattr(settings, 'DEVSERVER_DEFAULT_ADDR', '127.0.0.1')
             port = getattr(settings, 'DEVSERVER_DEFAULT_PORT', '8000')
-            addrport = '%s:%s' % (addr, port)
+            options['addrport'] = '%s:%s' % (addr, port)
 
-        return super(Command, self).handle(addrport=addrport, *args, **options)
+        return super(Command, self).handle(*args, **options)
 
     def get_handler(self, *args, **options):
         if int(options['verbosity']) < 1:
